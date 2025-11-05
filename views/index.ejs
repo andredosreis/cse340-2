@@ -1,0 +1,86 @@
+<%- include('partials/head', { title }) %>
+<%- include('partials/header') %>
+
+<!-- HERO -->
+<section class="relative min-h-[280px] md:min-h-[300px]">
+  <!-- Car image (background layer) -->
+  <div class="absolute left-15 top-1/2 -translate-y-1/2 w-full md:w-3/5 flex justify-start md:justify-start z-0">
+    <img
+      src="/images/vehicles/delorean.jpg"
+      alt="DMC Delorean silver sports car with gull-wing doors"
+      class="h-[220px] md:h-[280px] object-contain"
+    />
+  </div>
+
+  <!-- Text container (foreground layer) -->
+  <div class="relative z-10 grid md:grid-cols-2 gap-4 md:gap-6 items-center min-h-[280px] md:min-h-[300px]">
+    <!-- Left: text + "Own Today" -->
+    <div class=" w-[140px]  bg-white/70 backdrop-blur-sm rounded p-2">
+      <h1 class="text-[15px] md:text-[16px] font-semibold mb-1">Welcome to CSE Motors!</h1>
+
+      <div class="text-[13px] text-gray-800">
+        <p class="font-semibold text-sky-700">DMC Delorean</p>
+        <p>3 Cup holders</p>
+        <p>Superman doors</p>
+        <p>Fuzzy dice!</p>
+      </div>
+
+      <img
+        src="/images/site/own_today.png"
+        alt="Own Today button - Purchase this vehicle"
+        class="mt-2 w-[124px] md:w-[140px]"
+      />
+    </div>
+
+    <!-- Right: empty space -->
+    <div></div>
+  </div>
+</section>
+
+<!-- REVIEWS + UPGRADES -->
+<section class="grid md:grid-cols-2 gap-4 md:gap-6">
+  <!-- Upgrades (left) -->
+  <div class="bg-gray-50 rounded p-3">
+    <h3 class="font-semibold mb-2 text-sm md:text-base">Delorean Upgrades</h3>
+
+    <div class="grid grid-cols-2 gap-4">
+      <a class="block text-center" href="#">
+        <img src="/images/upgrades/flux-cap.png" alt="Flux Capacitor time travel upgrade device"
+             class="mx-auto h-16 md:h-[72px] object-contain"/>
+        <span class="text-[12px] block mt-1">Flux Capacitor</span>
+      </a>
+
+      <a class="block text-center" href="#">
+        <img src="/images/upgrades/flame.jpg" alt="Flame Decals custom paint job"
+             class="mx-auto h-16 md:h-[72px] object-contain"/>
+        <span class="text-[12px] block mt-1">Flame Decals</span>
+      </a>
+
+      <a class="block text-center" href="#">
+        <img src="/images/upgrades/bumper_sticker.jpg" alt="Bumper Stickers vintage collection"
+             class="mx-auto h-16 md:h-[72px] object-contain"/>
+        <span class="text-[12px] block mt-1">Bumper Stickers</span>
+      </a>
+
+      <a class="block text-center" href="#">
+        <img src="/images/upgrades/hub-cap.jpg" alt="Hub Caps chrome wheel covers"
+             class="mx-auto h-16 md:h-[72px] object-contain"/>
+        <span class="text-[12px] block mt-1">Hub Caps</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Reviews (right) -->
+  <div class="bg-gray-50 rounded p-3">
+    <h3 class="font-semibold mb-2 text-sm md:text-base">DMC Delorean Reviews</h3>
+    <ul class="list-disc ml-5 text-[13px] space-y-1">
+      <li>"So fast it's almost like traveling in time." (4/5)</li>
+      <li>"Coolest ride on the road." (4/5)</li>
+      <li>"I'm feeling McFly!" (5/5)</li>
+      <li>"The most futuristic ride of our day." (4/5)</li>
+      <li>"80's livin and I love it!" (5/5)</li>
+    </ul>
+  </div>
+</section>
+
+<%- include('partials/footer') %>

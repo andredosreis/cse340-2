@@ -1,0 +1,12 @@
+<%- include('partials/header', { title }) %>
+
+<section class="bg-white shadow rounded p-6">
+  <h2 class="text-xl font-semibold mb-3">Course</h2>
+  <ul class="list-disc ml-5 space-y-1">
+    <li><span class="font-semibold">Name:</span> <%= course %></li>
+    <li><span class="font-semibold">Week:</span> <%= week %></li>
+    <li><span class="font-semibold">Topic:</span> <%= topic %></li>
+  </ul>
+</section>
+
+<%- include('partials/footer') %>
