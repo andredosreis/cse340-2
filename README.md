@@ -44,7 +44,7 @@ npm install
 ```bash
 npm start
 ```
-Then open `http://localhost:3000`.
+Then open `http://localhost:5500`.
 
 ## Routes
 - `GET /` — Home (SSR example with EJS + Tailwind)
