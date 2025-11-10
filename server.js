@@ -12,6 +12,7 @@
 
 // Import Express
 const express = require('express');
+const expressLayouts = require('express-ejs-layouts');
 
 // Create the Express app (our server)
 const app = express();
@@ -23,6 +24,9 @@ const PORT = process.env.PORT || 5500;
  * EJS CONFIGURATION
  * =================
  */
+// Use express-ejs-layouts middleware
+app.use(expressLayouts);
+app.set('layout', './layout'); // Default layout file
 app.set('view engine', 'ejs');
 app.set('views', './views');
 

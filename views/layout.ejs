@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title><%= title %></title>
+  <meta name="description" content="CSE Motors Home"/>
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/site/favicon-32x32.png"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="text-gray-900" style="background:url('/images/site/small_check.png') repeat;">
+
+<div class="mx-auto bg-white shadow md:my-6 border-8 border-black max-w-[980px]">
+  <!-- Top bar (dark) -->
+  <header class="flex items-center justify-between px-4 py-2 bg-slate-800 text-white">
+    <!-- Brand -->
+    <div class="flex items-center gap-2">
+      <span class="text-[18px] md:text-[20px] font-semibold tracking-tight">CSE Motors</span>
+    </div>
+    <!-- Account -->
+    <a href="#" class="text-[12px] md:text-[12px] opacity-90 hover:opacity-100 underline-offset-2 hover:underline">My Account</a>
+  </header>
+
+  <!-- Thin separator like the mockup -->
+  <div class="h-[6px] bg-cyan-400"></div>
+
+  <!-- Nav -->
+  <nav class="flex flex-wrap items-center gap-2 px-4 py-2 text-[13px] border-b">
+    <a class="px-3 py-1 rounded bg-gray-200 hover:bg-gray-300" href="/">Home</a>
+    <a class="px-3 py-1 rounded hover:bg-gray-100" href="#">Custom</a>
+    <a class="px-3 py-1 rounded hover:bg-gray-100" href="#">Sedan</a>
+    <a class="px-3 py-1 rounded hover:bg-gray-100" href="#">SUV</a>
+    <a class="px-3 py-1 rounded hover:bg-gray-100" href="#">Truck</a>
+  </nav>
+
+  <!-- Content shell -->
+  <main class="p-3 md:p-4 space-y-6 md:space-y-8">
+    <%- body %>
+  </main>
+  <footer class="text-center text-sm text-gray-500 border-t px-4 py-3">
+    © 2025, CSE 340 App
+  </footer>
+</div>
+</body>
+</html>
