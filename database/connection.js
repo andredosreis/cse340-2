@@ -41,15 +41,17 @@ const pool = new Pool({
 
   // ssl: Segurança (criptografia) na conexão
   // Render e outros serviços cloud EXIGEM SSL
-  // Localmente, pode desabilitar
-  ssl: process.env.NODE_ENV === 'production'
-    ? { rejectUnauthorized: false } // Produção: aceita certificado SSL
+  // Detecta automaticamente se é Render pelo hostname
+  // Se for Render (.render.com) ou produção, habilita SSL
+  ssl: process.env.DATABASE_URL?.includes('render.com') || process.env.NODE_ENV === 'production'
+    ? { rejectUnauthorized: false } // Cloud/Produção: aceita certificado SSL
     : false, // Desenvolvimento local: sem SSL
 
   // Configurações opcionais do pool (boas práticas)
   max: 10, // Máximo de 10 conexões simultâneas
   idleTimeoutMillis: 30000, // Fecha conexões ociosas após 30 segundos
-  connectionTimeoutMillis: 2000, // Timeout de 2 segundos para conectar
+  connectionTimeoutMillis: 30000, // Timeout de 30 segundos (importante para Render free tier que pode "dormir")
+  statement_timeout: 30000, // Timeout de 30 segundos para executar queries
 });
 
 /**

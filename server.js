@@ -18,6 +18,10 @@ require('dotenv').config();
 const express = require('express');
 const expressLayouts = require('express-ejs-layouts');
 
+// Import filesystem module (para ler arquivos)
+const fs = require('fs');
+const path = require('path');
+
 // Import database connection pool
 // Isso vai testar a conexão quando o servidor iniciar
 const pool = require('./database/connection');
@@ -103,6 +107,96 @@ app.get('/test-db', async (req, res) => {
       message: '❌ Erro ao conectar com PostgreSQL',
       error: error.message,
       hint: 'Verifique se DATABASE_URL está configurado corretamente no arquivo .env'
+    });
+  }
+});
+
+/**
+ * ROTA PARA CRIAR/RESETAR O BANCO DE DADOS
+ * =========================================
+ * Esta rota executa o arquivo schema.sql para criar as tabelas
+ * ⚠️ CUIDADO: Isso APAGA todos os dados existentes!
+ * Acesse: http://localhost:5500/setup-db
+ *
+ * CONCEITO: Executar arquivo SQL
+ * -------------------------------
+ * - fs.readFileSync: Lê o conteúdo do arquivo schema.sql
+ * - path.join: Cria caminho absoluto para o arquivo
+ * - pool.query: Executa o SQL completo no banco
+ *
+ * QUANDO USAR:
+ * - Primeira vez configurando o banco
+ * - Precisa resetar o banco para dados limpos
+ * - Atualizou a estrutura das tabelas
+ */
+app.get('/setup-db', async (req, res) => {
+  try {
+    // Lê o arquivo schema.sql
+    const schemaPath = path.join(__dirname, 'database', 'schema.sql');
+    const schemaSql = fs.readFileSync(schemaPath, 'utf8');
+
+    // Executa todo o SQL do schema
+    await pool.query(schemaSql);
+
+    // Conta quantos registros foram criados
+    const classCount = await pool.query('SELECT COUNT(*) FROM classification');
+    const invCount = await pool.query('SELECT COUNT(*) FROM inventory');
+
+    res.json({
+      success: true,
+      message: '✅ Banco de dados configurado com sucesso!',
+      details: {
+        classifications: parseInt(classCount.rows[0].count),
+        vehicles: parseInt(invCount.rows[0].count)
+      },
+      info: 'Tabelas criadas e populadas com dados de exemplo.'
+    });
+  } catch (error) {
+    console.error('❌ Erro ao configurar banco:', error);
+    res.status(500).json({
+      success: false,
+      message: '❌ Erro ao criar tabelas',
+      error: error.message,
+      hint: 'Verifique o arquivo database/schema.sql'
+    });
+  }
+});
+
+/**
+ * ROTA PARA LISTAR TODOS OS VEÍCULOS (TESTE)
+ * ===========================================
+ * Acesse: http://localhost:5500/vehicles
+ *
+ * Esta rota retorna todos os veículos do banco em formato JSON
+ * Útil para verificar se os dados foram inseridos corretamente
+ */
+app.get('/vehicles', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        inv.inv_id,
+        inv.inv_make,
+        inv.inv_model,
+        inv.inv_year,
+        inv.inv_price,
+        inv.inv_miles,
+        inv.inv_color,
+        class.classification_name
+      FROM inventory inv
+      INNER JOIN classification class ON inv.classification_id = class.classification_id
+      ORDER BY inv.inv_make, inv.inv_model
+    `);
+
+    res.json({
+      success: true,
+      count: result.rows.length,
+      vehicles: result.rows
+    });
+  } catch (error) {
+    console.error('❌ Erro ao buscar veículos:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
     });
   }
 });
