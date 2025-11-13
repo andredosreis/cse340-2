@@ -1,5 +1,6 @@
-# Documentação do agente-cursor
+# Documentation folders (not part of production code)
 agente-cursor/
+docs/
 
 # Dependencies
 node_modules/
