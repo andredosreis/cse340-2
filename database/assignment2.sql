@@ -39,7 +39,7 @@ INSERT INTO account (
 -- Note: In production, you should use account_id for updates
 
 UPDATE account
-SET account_type = 'Admin'::account_type
+SET account_type = 'Admin'
 WHERE account_email = 'tony@starkent.com';
 
 -- =============================================

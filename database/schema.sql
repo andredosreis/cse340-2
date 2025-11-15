@@ -18,17 +18,12 @@
 --   - DELETE: Remove dados
 
 -- =============================================
--- 1. CRIAR TIPO ENUM para account_type
+-- 1. TIPO para account_type
 -- =============================================
--- Tipo customizado do PostgreSQL para restrição de valores
--- ENUM = Enumeration (enumeração)
--- Valores possíveis: 'Client', 'Employee', 'Admin'
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'account_type') THEN
-        CREATE TYPE account_type AS ENUM ('Client', 'Employee', 'Admin');
-    END IF;
-END $$;
+-- PostgreSQL Render tem restrições para CREATE TYPE
+-- Solução: Usar VARCHAR e validar tipos em aplicação
+-- Valores válidos: 'Client', 'Employee', 'Admin'
+-- (Validação feita no código Node.js)
 
 -- =============================================
 -- 2. LIMPAR DADOS EXISTENTES (se houver)
@@ -284,7 +279,9 @@ CREATE TABLE account (
   account_password VARCHAR NOT NULL,        -- Senha criptografada
 
   -- Tipo de conta
-  account_type account_type NOT NULL DEFAULT 'Client'::account_type,
+  -- VARCHAR ao invés de ENUM (compatibilidade com Render)
+  -- Valores válidos: 'Client', 'Employee', 'Admin'
+  account_type VARCHAR(20) NOT NULL DEFAULT 'Client',
 
   -- Definir primary key
   CONSTRAINT account_pkey PRIMARY KEY (account_id)
