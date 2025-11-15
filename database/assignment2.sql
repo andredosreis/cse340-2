@@ -19,7 +19,7 @@
 -- account_id and account_type are auto-generated with defaults
 -- Result: 1 row inserted with account_id auto-incremented
 
-INSERT INTO account (
+INSERT INTO cse340.account (
     account_firstname,
     account_lastname,
     account_email,
@@ -38,7 +38,7 @@ INSERT INTO account (
 -- Uses the account_email to identify the record
 -- Note: In production, you should use account_id for updates
 
-UPDATE account
+UPDATE cse340.account
 SET account_type = 'Admin'
 WHERE account_email = 'tony@starkent.com';
 
@@ -48,7 +48,7 @@ WHERE account_email = 'tony@starkent.com';
 -- Deletes the account record for Tony Stark
 -- Uses the account_email to identify and remove the record
 
-DELETE FROM account
+DELETE FROM cse340.account
 WHERE account_email = 'tony@starkent.com';
 
 -- =============================================
@@ -59,7 +59,7 @@ WHERE account_email = 'tony@starkent.com';
 -- REPLACE function: REPLACE(string, substring_to_find, substring_to_replace)
 -- This demonstrates string manipulation in SQL without retyping the entire field
 
-UPDATE inventory
+UPDATE cse340.inventory
 SET inv_description = REPLACE(inv_description, 'small interiors', 'a huge interior')
 WHERE inv_make = 'GM' AND inv_model = 'Hummer';
 
@@ -75,8 +75,8 @@ SELECT
     inv.inv_make,
     inv.inv_model,
     c.classification_name
-FROM inventory inv
-INNER JOIN classification c
+FROM cse340.inventory inv
+INNER JOIN cse340.classification c
     ON inv.classification_id = c.classification_id
 WHERE c.classification_name = 'Sport'
 ORDER BY inv.inv_make, inv.inv_model;
@@ -90,7 +90,7 @@ ORDER BY inv.inv_make, inv.inv_model;
 -- Uses REPLACE() function to insert directory in the path
 -- Applied to both inv_image and inv_thumbnail columns for all inventory records
 
-UPDATE inventory
+UPDATE cse340.inventory
 SET
     inv_image = REPLACE(inv_image, '/images/', '/images/vehicles/'),
     inv_thumbnail = REPLACE(inv_thumbnail, '/images/', '/images/vehicles/')

@@ -2,95 +2,152 @@
 -- DATABASE REBUILD SCRIPT
 -- CSE 340 - Assignment 2: Disaster Recovery
 -- =============================================
--- This file contains the complete database structure rebuild
--- after deleting and recreating the database from Render.com
+-- Este arquivo contém a reconstrução completa do banco de dados
+-- após deletar e recriar o banco de dados do Render.com
 --
--- INCLUDES:
--- 1. ENUM Type creation
--- 2. All CREATE TABLE statements
--- 3. Data population (INSERT statements)
--- 4. Final queries (Query 4 and Query 6 from Assignment 2)
+-- BASEADO EM: schema.sql (versão que funciona no Render)
+-- ADICIONADO: Queries 4 e 6 do Assignment 2 para demonstração
+--
+-- INCLUI:
+-- 1. DROP de tabelas existentes (se houver)
+-- 2. Todas as statements CREATE TABLE
+-- 3. População de dados (statements INSERT)
+-- 4. Índices para performance
+-- 5. Comentários de documentação
+-- 6. Queries 4 e 6 do Assignment 2 (disaster recovery demo)
 
 -- =============================================
--- STEP 1: ACCOUNT TYPE DEFINITION
+-- STEP 0: CRIAR SCHEMA CUSTOMIZADO
 -- =============================================
--- Using VARCHAR instead of ENUM for Render PostgreSQL compatibility
--- Valid values: 'Client', 'Employee', 'Admin'
--- Validation is handled in the application (Node.js)
+-- Cria um schema chamado 'cse340' para evitar restrições do schema 'public'
+-- Render free tier tem permissões limitadas no schema public
+-- A solução é usar um schema customizado
+
+CREATE SCHEMA IF NOT EXISTS cse340;
 
 -- =============================================
--- STEP 2: DROP EXISTING TABLES (if rebuilding)
+-- STEP 1: LIMPAR DADOS EXISTENTES (se houver)
 -- =============================================
--- Removes tables in correct order (dependencies first)
--- CASCADE ensures dependent tables are also removed
+-- DROP = "Derrubar/Remover"
+-- IF EXISTS = Só remove se a tabela existir (evita erro)
+-- CASCADE = Remove em cascata (remove dependências também)
+-- Ordem importa: Remover primeiro as tabelas que DEPENDEM de outras
 
-DROP TABLE IF EXISTS inventory CASCADE;
-DROP TABLE IF EXISTS classification CASCADE;
-DROP TABLE IF EXISTS account CASCADE;
+DROP TABLE IF EXISTS cse340.inventory CASCADE;
+DROP TABLE IF EXISTS cse340.classification CASCADE;
+DROP TABLE IF EXISTS cse340.account CASCADE;
 
 -- =============================================
--- STEP 3: CREATE TABLE - classification
+-- STEP 2: TABELA: classification (Classificação/Tipo)
 -- =============================================
--- Stores vehicle classification types
--- Supports proper database normalization
--- Allows categorization of inventory by type
+-- Armazena os TIPOS de veículos (Sedan, SUV, Truck, etc)
+--
+-- CONCEITO: Normalização
+-- ----------------------
+-- Em vez de repetir "Sedan", "Sedan", "Sedan" em cada veículo,
+-- criamos uma tabela separada e fazemos REFERÊNCIA ao ID.
+-- Benefícios:
+-- - Economiza espaço
+-- - Consistência (não tem erro de digitação)
+-- - Fácil de atualizar (muda em um lugar só)
 
-CREATE TABLE IF NOT EXISTS public.classification (
+CREATE TABLE cse340.classification (
+  -- PRIMARY KEY (Chave Primária)
+  -- SERIAL = Auto-incrementa automaticamente: 1, 2, 3...
+  -- PRIMARY KEY = Identifica UNICAMENTE cada registro
   classification_id SERIAL PRIMARY KEY,
+
+  -- VARCHAR(50) = String de até 50 caracteres
+  -- NOT NULL = Campo obrigatório (não pode estar vazio)
+  -- UNIQUE = Não pode repetir (ex: não pode ter dois "Sedan")
   classification_name VARCHAR(50) NOT NULL UNIQUE
 );
 
 -- =============================================
--- STEP 4: CREATE TABLE - inventory
+-- STEP 3: TABELA: inventory (Inventário/Estoque)
 -- =============================================
--- Stores vehicle records with detailed information
--- Foreign key relationship to classification table
--- Supports vehicle images and pricing information
+-- Armazena os VEÍCULOS disponíveis no estoque
+--
+-- CONCEITO: Foreign Key (Chave Estrangeira)
+-- classification_id nesta tabela "aponta para" classification_id na tabela classification
+-- Isso cria um RELACIONAMENTO: "Um veículo pertence a uma classificação"
 
-CREATE TABLE IF NOT EXISTS public.inventory (
+CREATE TABLE cse340.inventory (
+  -- Primary Key desta tabela
   inv_id SERIAL PRIMARY KEY,
-  inv_make VARCHAR(50) NOT NULL,
-  inv_model VARCHAR(50) NOT NULL,
-  inv_year INTEGER NOT NULL,
-  inv_description TEXT NOT NULL,
-  inv_image VARCHAR(200) NOT NULL,
-  inv_thumbnail VARCHAR(200) NOT NULL,
-  inv_price NUMERIC(9,2) NOT NULL,
-  inv_miles INTEGER NOT NULL DEFAULT 0,
-  inv_color VARCHAR(30) NOT NULL,
+
+  -- Informações básicas do veículo
+  inv_make VARCHAR(50) NOT NULL,        -- Fabricante (ex: Toyota, Ford)
+  inv_model VARCHAR(50) NOT NULL,       -- Modelo (ex: Camry, F-150)
+  inv_year INTEGER NOT NULL,            -- Ano (ex: 2020, 2023)
+
+  -- Descrição detalhada
+  inv_description TEXT NOT NULL,        -- TEXT = String sem limite de tamanho
+
+  -- Imagem do veículo
+  inv_image VARCHAR(200) NOT NULL,      -- Caminho para a imagem
+  inv_thumbnail VARCHAR(200) NOT NULL,  -- Miniatura (versão pequena da imagem)
+
+  -- Preço e milhagem
+  -- NUMERIC(9,2) = Número decimal com até 9 dígitos, 2 após o ponto
+  inv_price NUMERIC(9,2) NOT NULL,      -- Preço (ex: 35000.00)
+  inv_miles INTEGER NOT NULL DEFAULT 0, -- Milhagem (ex: 15000)
+
+  -- Cor do veículo
+  inv_color VARCHAR(30) NOT NULL,       -- Cor (ex: "Silver", "Black")
+
+  -- FOREIGN KEY (Chave Estrangeira)
+  -- Este campo cria a RELAÇÃO com a tabela classification
   classification_id INTEGER NOT NULL,
+
+  -- CONSTRAINT = Restrição/Regra
+  -- ON DELETE CASCADE = Se deletar uma classification, deleta veículos dessa classificação
+  -- ON UPDATE CASCADE = Se mudar o ID, atualiza automaticamente aqui
   CONSTRAINT fk_classification
     FOREIGN KEY (classification_id)
-    REFERENCES public.classification(classification_id)
+    REFERENCES cse340.classification(classification_id)
     ON DELETE CASCADE
     ON UPDATE CASCADE
 );
 
 -- =============================================
--- STEP 5: CREATE TABLE - account
+-- STEP 4: TABELA: account (Contas de Usuário)
 -- =============================================
--- Stores user account information
--- Supports client authentication and user management
--- account_type defaults to 'Client' for new accounts
--- Using VARCHAR for account_type (ENUM not supported on Render free tier)
+-- Armazena as contas dos usuários do sistema
+-- GENERATED BY DEFAULT AS IDENTITY = Auto-incrementa o ID
+-- account_type = Tipo de conta (Client, Employee, Admin)
 
-CREATE TABLE IF NOT EXISTS public.account (
+CREATE TABLE cse340.account (
+  -- Primary Key desta tabela
+  -- GENERATED BY DEFAULT AS IDENTITY = Auto-incrementa automaticamente
   account_id INTEGER NOT NULL GENERATED BY DEFAULT AS IDENTITY,
-  account_firstname VARCHAR NOT NULL,
-  account_lastname VARCHAR NOT NULL,
-  account_email VARCHAR NOT NULL,
-  account_password VARCHAR NOT NULL,
+
+  -- Informações pessoais
+  account_firstname VARCHAR NOT NULL,       -- Primeiro nome (ex: Tony, John)
+  account_lastname VARCHAR NOT NULL,        -- Sobrenome (ex: Stark, Doe)
+
+  -- Informações de contato
+  account_email VARCHAR NOT NULL,           -- Email (ex: tony@starkent.com)
+
+  -- Senha (será hasheada em produção!)
+  account_password VARCHAR NOT NULL,        -- Senha criptografada
+
+  -- Tipo de conta
+  -- VARCHAR ao invés de ENUM (compatibilidade com Render)
+  -- Valores válidos: 'Client', 'Employee', 'Admin'
   account_type VARCHAR(20) NOT NULL DEFAULT 'Client',
+
+  -- Definir primary key
   CONSTRAINT account_pkey PRIMARY KEY (account_id)
 );
 
 -- =============================================
--- STEP 6: INSERT DATA - classification
+-- STEP 5: INSERIR DADOS - classification
 -- =============================================
--- Populates vehicle classification types
--- Used to categorize and filter vehicles
+-- Popula os tipos de classificação de veículos
+-- Usado para categorizar e filtrar veículos
 
-INSERT INTO public.classification (classification_name) VALUES
+INSERT INTO cse340.classification (classification_name) VALUES
   ('Custom'),
   ('Sport'),
   ('SUV'),
@@ -98,13 +155,12 @@ INSERT INTO public.classification (classification_name) VALUES
   ('Sedan');
 
 -- =============================================
--- STEP 7: INSERT DATA - inventory
+-- STEP 6: INSERIR DADOS - inventory
 -- =============================================
--- Populates vehicle inventory with sample data
--- Includes 6 vehicles across different categories
--- All images are stored in /images/vehicles/ directory
+-- Popula o inventário de veículos com dados de exemplo
+-- Inclui 6 veículos em diferentes categorias
 
-INSERT INTO public.inventory (
+INSERT INTO cse340.inventory (
   inv_make,
   inv_model,
   inv_year,
@@ -186,8 +242,8 @@ INSERT INTO public.inventory (
     4
   ),
 
-  -- Veículo 6: GM Hummer (SUV)
-  -- NOTE: This vehicle has "small interiors" in description for Query 4 REPLACE
+  -- Veículo 6: GM Hummer (SUV) - NECESSÁRIO PARA ASSIGNMENT 2
+  -- Este veículo tem "small interiors" na descrição para a query REPLACE
   (
     'GM',
     'Hummer',
@@ -202,49 +258,57 @@ INSERT INTO public.inventory (
   );
 
 -- =============================================
--- STEP 8: CREATE INDEXES for performance
+-- STEP 7: CRIAR ÍNDICES (para performance)
 -- =============================================
--- Indexes on frequently queried columns
--- Improves query performance on large datasets
+-- CONCEITO: Índice (Index)
+-- Como o índice de um livro: ajuda a encontrar coisas mais rápido
+-- Útil em colunas que você vai BUSCAR frequentemente
 
-CREATE INDEX IF NOT EXISTS idx_inventory_classification ON public.inventory(classification_id);
-CREATE INDEX IF NOT EXISTS idx_inventory_make ON public.inventory(inv_make);
+-- Índice na coluna classification_id da tabela inventory
+-- Acelera queries como: SELECT * FROM inventory WHERE classification_id = 1
+CREATE INDEX idx_inventory_classification ON cse340.inventory(classification_id);
 
--- =============================================
--- STEP 9: ADD COMMENTS for documentation
--- =============================================
--- Metadata comments visible in database tools
--- Helps other developers understand the schema
-
-COMMENT ON TABLE public.classification IS 'Vehicle classification types (Custom, Sport, SUV, Truck, Sedan)';
-COMMENT ON TABLE public.inventory IS 'Vehicle inventory with pricing and description data';
-COMMENT ON TABLE public.account IS 'User account records with authentication information';
+-- Índice na coluna inv_make (fabricante)
+-- Acelera queries como: SELECT * FROM inventory WHERE inv_make = 'Ford'
+CREATE INDEX idx_inventory_make ON cse340.inventory(inv_make);
 
 -- =============================================
--- STEP 10: FINAL OPERATIONS - Assignment 2 Queries 4 & 6
+-- STEP 8: ADICIONAR COMENTÁRIOS (documentação)
 -- =============================================
--- These queries are executed as part of the database rebuild
--- to demonstrate Assignment 2 requirements completion
+-- PostgreSQL permite adicionar comentários às tabelas e colunas
+-- Isso aparece em ferramentas de administração (pgAdmin, DBeaver, etc)
+
+COMMENT ON TABLE cse340.classification IS 'Tipos/Categorias de veículos (Custom, Sport, SUV, etc)';
+COMMENT ON TABLE cse340.inventory IS 'Inventário de veículos disponíveis para venda';
+COMMENT ON TABLE cse340.account IS 'Contas de usuário do sistema (clientes, funcionários, admin)';
 
 -- =============================================
--- QUERY 4: UPDATE with REPLACE - Fix GM Hummer description
+-- STEP 9: OPERAÇÕES FINAIS - Queries 4 & 6 do Assignment 2
 -- =============================================
--- Replaces "small interiors" with "a huge interior"
--- This query demonstrates proper use of PostgreSQL REPLACE function
--- Assignment 2 Requirement: Modify inventory using REPLACE()
+-- Estas queries são executadas como parte da reconstrução do banco
+-- para demonstrar os requisitos do Assignment 2
 
-UPDATE public.inventory
+-- =============================================
+-- QUERY 4: UPDATE com REPLACE - Corrigir descrição do GM Hummer
+-- =============================================
+-- Substitui "small interiors" por "a huge interior"
+-- Esta query demonstra o uso apropriado da função REPLACE do PostgreSQL
+-- Requisito Assignment 2: Modificar inventory usando REPLACE()
+
+UPDATE cse340.inventory
 SET inv_description = REPLACE(inv_description, 'small interiors', 'a huge interior')
 WHERE inv_make = 'GM' AND inv_model = 'Hummer';
 
 -- =============================================
--- QUERY 6: UPDATE with Path Modification
+-- QUERY 6: UPDATE com Modificação de Caminho
 -- =============================================
--- Adds "/vehicles" to the middle of file paths
--- Updates both inv_image and inv_thumbnail columns
--- Transforms '/images/delorean.jpg' to '/images/vehicles/delorean.jpg'
+-- Adiciona "/vehicles" no meio dos caminhos de arquivo
+-- Transforma '/images/delorean.jpg' em '/images/vehicles/delorean.jpg'
+-- Transforma '/images/delorean-tn.jpg' em '/images/vehicles/delorean-tn.jpg'
+-- Usa a função REPLACE() para inserir um diretório no caminho
+-- Aplicada a ambas as colunas inv_image e inv_thumbnail de todos os registros
 
-UPDATE public.inventory
+UPDATE cse340.inventory
 SET
     inv_image = REPLACE(inv_image, '/images/', '/images/vehicles/'),
     inv_thumbnail = REPLACE(inv_thumbnail, '/images/', '/images/vehicles/')
@@ -252,10 +316,11 @@ WHERE inv_image NOT LIKE '%/vehicles/%'
   AND inv_thumbnail NOT LIKE '%/vehicles/%';
 
 -- =============================================
--- DATABASE REBUILD COMPLETE
+-- RECONSTRUÇÃO DO BANCO DE DADOS COMPLETA
 -- =============================================
--- The database is now ready for use with:
--- - 3 tables (classification, inventory, account)
--- - Complete seed data
--- - Proper indexes and constraints
--- - Assignment 2 final operations applied
+-- O banco de dados agora está pronto para uso com:
+-- - 3 tabelas (classification, inventory, account)
+-- - Dados completos e seed data
+-- - Índices apropriados e constraints
+-- - Operações finais do Assignment 2 aplicadas
+-- - Disaster recovery demonstrado com sucesso
