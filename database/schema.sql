@@ -26,6 +26,13 @@
 -- (Validação feita no código Node.js)
 
 -- =============================================
+-- 1. CRIAR SCHEMA cse340 (se não existir)
+-- =============================================
+-- SCHEMA = Namespace/Esquema para organizar tabelas
+-- Render Free Tier exige uso de schemas personalizados
+CREATE SCHEMA IF NOT EXISTS cse340;
+
+-- =============================================
 -- 2. LIMPAR DADOS EXISTENTES (se houver)
 -- =============================================
 -- DROP = "Derrubar/Remover"
@@ -33,12 +40,12 @@
 -- CASCADE = Remove em cascata (remove dependências também)
 -- Ordem importa: Remover primeiro as tabelas que DEPENDEM de outras
 
-DROP TABLE IF EXISTS inventory CASCADE;
-DROP TABLE IF EXISTS classification CASCADE;
-DROP TABLE IF EXISTS account CASCADE;
+DROP TABLE IF EXISTS cse340.inventory CASCADE;
+DROP TABLE IF EXISTS cse340.classification CASCADE;
+DROP TABLE IF EXISTS cse340.account CASCADE;
 
 -- =============================================
--- 2. TABELA: classification (Classificação/Tipo)
+-- 3. TABELA: classification (Classificação/Tipo)
 -- =============================================
 -- Armazena os TIPOS de veículos (Sedan, SUV, Truck, etc)
 --
@@ -51,7 +58,7 @@ DROP TABLE IF EXISTS account CASCADE;
 -- - Consistência (não tem erro de digitação)
 -- - Fácil de atualizar (muda em um lugar só)
 
-CREATE TABLE classification (
+CREATE TABLE cse340.classification (
   -- PRIMARY KEY (Chave Primária)
   -- -----------------------------
   -- SERIAL = Tipo especial do PostgreSQL
@@ -79,7 +86,7 @@ CREATE TABLE classification (
 -- classification_id nesta tabela "aponta para" classification_id na tabela classification
 -- Isso cria um RELACIONAMENTO: "Um veículo pertence a uma classificação"
 
-CREATE TABLE inventory (
+CREATE TABLE cse340.inventory (
   -- Primary Key desta tabela
   inv_id SERIAL PRIMARY KEY,
 
@@ -117,7 +124,7 @@ CREATE TABLE inventory (
   -- ON UPDATE CASCADE = Se mudar o ID da classification, atualiza automaticamente aqui
   CONSTRAINT fk_classification
     FOREIGN KEY (classification_id)
-    REFERENCES classification(classification_id)
+    REFERENCES cse340.classification(classification_id)
     ON DELETE CASCADE
     ON UPDATE CASCADE
 );
@@ -132,17 +139,15 @@ CREATE TABLE inventory (
 -- INSERT INTO = Insere dados em uma tabela
 -- VALUES = Os valores a serem inseridos
 -- Não precisamos especificar classification_id pois é SERIAL (auto-incrementa)
-INSERT INTO classification (classification_name) VALUES
+INSERT INTO cse340.classification (classification_name) VALUES
   ('Custom'),
   ('Sport'),
   ('SUV'),
   ('Truck'),
   ('Sedan');
 
--- Inserir veículos de exemplo
--- $1, $2, $3 = Placeholders (vamos usar isso nos models mais tarde)
--- Aqui usamos valores diretos
-INSERT INTO inventory (
+-- Inserir veículos de exemplo (14 veículos com imagens válidas)
+INSERT INTO cse340.inventory (
   inv_make,
   inv_model,
   inv_year,
@@ -154,89 +159,182 @@ INSERT INTO inventory (
   inv_color,
   classification_id
 ) VALUES
-  -- Veículo 1: DMC Delorean (Custom)
+  -- Custom vehicles (classification_id = 1)
   (
-    'DMC',
-    'Delorean',
-    1981,
-    'The DMC DeLorean is a rear-engine two-passenger sports car manufactured and marketed by John DeLorean''s DeLorean Motor Company (DMC) for the American market from 1981–83. The car features gull-wing doors and a stainless-steel outer body shell.',
-    '/images/vehicles/delorean.jpg',
-    '/images/vehicles/delorean-tn.jpg',
-    35000.00,
-    3000,
-    'Silver',
-    1  -- classification_id = 1 (Custom)
-  ),
-
-  -- Veículo 2: Ford Model T (Custom)
-  (
-    'Ford',
-    'Model T',
-    1908,
-    'The Ford Model T is an automobile that was produced by Ford Motor Company from October 1, 1908, to May 26, 1927. It is generally regarded as the first affordable automobile, which made car travel available to middle-class Americans.',
-    '/images/vehicles/model-t.jpg',
-    '/images/vehicles/model-t-tn.jpg',
-    15000.00,
-    50000,
+    'Batmobile',
+    'Custom',
+    2007,
+    'Ever want to be a super hero? now you can with the batmobile. This car allows you to switch to bike mode allowing you to easily maneuver through traffic during rush hour.',
+    '/images/vehicles/batmobile.jpg',
+    '/images/vehicles/batmobile-tn.jpg',
+    65000,
+    29887,
     'Black',
-    1  -- classification_id = 1 (Custom)
+    1
+  ),
+  (
+    'FBI',
+    'Surveillance Van',
+    2016,
+    'Do you like police shows? You will feel right at home driving this van, comes complete with survalence equipments for and extra fee of $2,000 a month.',
+    '/images/vehicles/survan.jpg',
+    '/images/vehicles/survan-tn.jpg',
+    20000,
+    19851,
+    'Brown',
+    1
+  ),
+  (
+    'Dog',
+    'Car',
+    1997,
+    'Do you like dogs? Well this car is for you straight from the 90s from Aspen, Colorado we have the orginal Dog Car complete with fluffy ears.',
+    '/images/vehicles/dog-car.jpg',
+    '/images/vehicles/dog-car-tn.jpg',
+    35000,
+    71632,
+    'White',
+    1
+  ),
+  (
+    'Aerocar International',
+    'Aerocar',
+    1963,
+    'Are you sick of rushhour trafic? This car converts into an airplane to get you where you are going fast. Only 6 of these were made, get them while they last!',
+    '/images/vehicles/aerocar.jpg',
+    '/images/vehicles/aerocar-tn.jpg',
+    700000,
+    18956,
+    'Red',
+    1
+  ),
+  (
+    'Monster',
+    'Truck',
+    1995,
+    'Most trucks are for working, this one is for fun. This beast comes with 60 inch tires giving you traction needed to jump and roll in the mud.',
+    '/images/vehicles/monster-truck.jpg',
+    '/images/vehicles/monster-truck-tn.jpg',
+    150000,
+    3998,
+    'purple',
+    1
+  ),
+  (
+    'Mystery',
+    'Machine',
+    1999,
+    'Scooby and the gang always found luck in solving their mysteries because of there 4 wheel drive Mystery Machine. This Van will help you do whatever job you are required to with a success rate of 100%.',
+    '/images/vehicles/mystery-van.jpg',
+    '/images/vehicles/mystery-van-tn.jpg',
+    10000,
+    128564,
+    'Green',
+    1
   ),
 
-  -- Veículo 3: Jeep Wrangler (SUV)
+  -- Sport vehicles (classification_id = 2)
+  (
+    'Chevy',
+    'Camaro',
+    2018,
+    'If you want to look cool this is the ar you need! This car has great performance at an affordable price. Own it today!',
+    '/images/vehicles/camaro.jpg',
+    '/images/vehicles/camaro-tn.jpg',
+    25000,
+    101222,
+    'Silver',
+    2
+  ),
+  (
+    'Lamborghini',
+    'Adventador',
+    2016,
+    'This V-12 engine packs a punch in this sporty car. Make sure you wear your seatbelt and obey all traffic laws.',
+    '/images/vehicles/adventador.jpg',
+    '/images/vehicles/adventador-tn.jpg',
+    417650,
+    71003,
+    'Blue',
+    2
+  ),
+
+  -- SUV vehicles (classification_id = 3)
   (
     'Jeep',
     'Wrangler',
     2019,
-    'The Jeep Wrangler is a series of compact and mid-size four-wheel drive off-road SUVs manufactured by Jeep since 1986. Features removable doors and top for open-air driving.',
+    'The Jeep Wrangler is small and compact with enough power to get you where you want to go. Its great for everyday driving as well as offroading weather that be on the the rocks or in the mud!',
     '/images/vehicles/wrangler.jpg',
     '/images/vehicles/wrangler-tn.jpg',
-    28000.00,
-    41000,
-    'Orange',
-    3  -- classification_id = 3 (SUV)
-  ),
-
-  -- Veículo 4: Chevrolet Camaro (Sport)
-  (
-    'Chevrolet',
-    'Camaro',
-    2022,
-    'The Chevrolet Camaro is a mid-size American automobile manufactured by Chevrolet, classified as a pony car. It went on sale on September 29, 1966, for the 1967 model year.',
-    '/images/vehicles/camaro.jpg',
-    '/images/vehicles/camaro-tn.jpg',
-    42000.00,
-    8000,
+    28045,
+    41205,
     'Yellow',
-    2  -- classification_id = 2 (Sport)
+    3
   ),
 
-  -- Veículo 5: Ford F-150 (Truck)
+  -- Truck vehicles (classification_id = 4)
   (
-    'Ford',
-    'F-150',
-    2023,
-    'The Ford F-Series is a series of trucks marketed and manufactured by Ford Motor Company since 1948. The F-150 is the most popular variant of the F-Series, and is the best-selling vehicle in the United States.',
-    '/images/vehicles/f150.jpg',
-    '/images/vehicles/f150-tn.jpg',
-    55000.00,
-    12000,
-    'Blue',
-    4  -- classification_id = 4 (Truck)
+    'Cadillac',
+    'Escalade',
+    2019,
+    'This stylin car is great for any occasion from going to the beach to meeting the president. The luxurious inside makes this car a home away from home.',
+    '/images/vehicles/escalade.jpg',
+    '/images/vehicles/escalade-tn.jpg',
+    75195,
+    41958,
+    'Black',
+    4
   ),
-
-  -- Veículo 6: GM Hummer (SUV) - REQUIRED FOR ASSIGNMENT 2
-  -- This vehicle has "small interiors" in description for REPLACE query
   (
     'GM',
     'Hummer',
     2016,
-    'The Hummer is a great vehicle for those who need a lot of space. It comes with seating for many passengers and small interiors. The car is very capable of towing, hauling, and general off road driving.',
+    'Do you have 6 kids and like to go offroading? The Hummer gives you the small interiors with an engine to get you out of any muddy or rocky situation.',
     '/images/vehicles/hummer.jpg',
     '/images/vehicles/hummer-tn.jpg',
-    35000.00,
-    37000,
+    58800,
+    56564,
     'Yellow',
-    3  -- classification_id = 3 (SUV)
+    4
+  ),
+  (
+    'Spartan',
+    'Fire Truck',
+    2012,
+    'Emergencies happen often. Be prepared with this Spartan fire truck. Comes complete with 1000 ft. of hose and a 1000 gallon tank.',
+    '/images/vehicles/fire-truck.jpg',
+    '/images/vehicles/fire-truck-tn.jpg',
+    50000,
+    37862,
+    'Red',
+    4
+  ),
+
+  -- Sedan vehicles (classification_id = 5)
+  (
+    'Mechanic',
+    'Special',
+    1964,
+    'Not sure where this car came from. however with a little tlc it will run as good a new.',
+    '/images/vehicles/mechanic.jpg',
+    '/images/vehicles/mechanic-tn.jpg',
+    100,
+    200125,
+    'Rust',
+    5
+  ),
+  (
+    'Ford',
+    'Model T',
+    1921,
+    'The Ford Model T can be a bit tricky to drive. It was the first car to be put into production. You can get it in any color you want as long as it is black.',
+    '/images/vehicles/model-t.jpg',
+    '/images/vehicles/model-t-tn.jpg',
+    30000,
+    26357,
+    'Black',
+    5
   );
 
 -- =============================================
@@ -250,11 +348,11 @@ INSERT INTO inventory (
 
 -- Índice na coluna classification_id da tabela inventory
 -- Acelera queries como: SELECT * FROM inventory WHERE classification_id = 1
-CREATE INDEX idx_inventory_classification ON inventory(classification_id);
+CREATE INDEX idx_inventory_classification ON cse340.inventory(classification_id);
 
 -- Índice na coluna inv_make (fabricante)
--- Acelera queries como: SELECT * FROM inventory WHERE inv_make = 'Ford'
-CREATE INDEX idx_inventory_make ON inventory(inv_make);
+-- Acelera queries como: SELECT * FROM cse340.inventory WHERE inv_make = 'Ford'
+CREATE INDEX idx_inventory_make ON cse340.inventory(inv_make);
 
 -- =============================================
 -- 4. TABELA: account (Contas de Usuário)
@@ -263,7 +361,7 @@ CREATE INDEX idx_inventory_make ON inventory(inv_make);
 -- GENERATED BY DEFAULT AS IDENTITY = Auto-incrementa o ID
 -- account_type = Tipo de conta (Client, Employee, Admin)
 
-CREATE TABLE account (
+CREATE TABLE cse340.account (
   -- Primary Key desta tabela
   -- GENERATED BY DEFAULT AS IDENTITY = Auto-incrementa automaticamente
   account_id INTEGER NOT NULL GENERATED BY DEFAULT AS IDENTITY,
@@ -293,9 +391,9 @@ CREATE TABLE account (
 -- PostgreSQL permite adicionar comentários às tabelas e colunas
 -- Isso aparece em ferramentas de administração (pgAdmin, DBeaver, etc)
 
-COMMENT ON TABLE classification IS 'Tipos/Categorias de veículos (Custom, Sport, SUV, etc)';
-COMMENT ON TABLE inventory IS 'Inventário de veículos disponíveis para venda';
-COMMENT ON TABLE account IS 'Contas de usuário do sistema (clientes, funcionários, admin)';
+COMMENT ON TABLE cse340.classification IS 'Tipos/Categorias de veículos (Custom, Sport, SUV, etc)';
+COMMENT ON TABLE cse340.inventory IS 'Inventário de veículos disponíveis para venda';
+COMMENT ON TABLE cse340.account IS 'Contas de usuário do sistema (clientes, funcionários, admin)';
 
 -- =============================================
 -- FIM DO SCHEMA

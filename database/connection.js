@@ -43,7 +43,7 @@ const pool = new Pool({
   // Render e outros serviços cloud EXIGEM SSL
   // Detecta automaticamente se é Render pelo hostname
   // Se for Render (.render.com) ou produção, habilita SSL
-  ssl: process.env.DATABASE_URL?.includes('render.com') || process.env.NODE_ENV === 'production'
+  ssl: process.env.DATABASE_URL?.includes('render') || process.env.NODE_ENV === 'production'
     ? { rejectUnauthorized: false } // Cloud/Produção: aceita certificado SSL
     : false, // Desenvolvimento local: sem SSL
 

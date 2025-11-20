@@ -26,6 +26,10 @@ const path = require('path');
 // Isso vai testar a conexão quando o servidor iniciar
 const pool = require('./database/connection');
 
+// Import utilities and routes
+const utilities = require('./utilities/');
+const inventoryRoute = require('./routes/inventoryRoute');
+
 // Create the Express app (our server)
 const app = express();
 
@@ -49,23 +53,33 @@ app.use('/images', express.static('images'));
  * ROUTES
  * ======
  */
-app.get('/', (req, res) => {
+
+// Inventory routes (MVC architecture)
+app.use('/inv', inventoryRoute);
+
+// Home route with dynamic navigation
+app.get('/', utilities.handleErrors(async (req, res) => {
+  const nav = await utilities.getNav();
   const data = {
     title: 'Welcome to the CSE 340 Project',
     message: 'This is an example of Server-Side Rendering!',
-    currentDate: new Date().toLocaleDateString('en-US')
+    currentDate: new Date().toLocaleDateString('en-US'),
+    nav
   };
   res.render('index', data);
-});
+}));
 
-app.get('/about', (req, res) => {
+// About route with dynamic navigation
+app.get('/about', utilities.handleErrors(async (req, res) => {
+  const nav = await utilities.getNav();
   res.render('about', {
     title: 'About',
     course: 'CSE 340 - Web Backend Development',
     week: 1,
-    topic: 'Server-Side Rendering with Express + EJS'
+    topic: 'Server-Side Rendering with Express + EJS',
+    nav
   });
-});
+}));
 
 /**
  * ROTA DE TESTE DO BANCO DE DADOS
@@ -139,8 +153,8 @@ app.get('/setup-db', async (req, res) => {
     await pool.query(schemaSql);
 
     // Conta quantos registros foram criados
-    const classCount = await pool.query('SELECT COUNT(*) FROM classification');
-    const invCount = await pool.query('SELECT COUNT(*) FROM inventory');
+    const classCount = await pool.query('SELECT COUNT(*) FROM cse340.classification');
+    const invCount = await pool.query('SELECT COUNT(*) FROM cse340.inventory');
 
     res.json({
       success: true,
@@ -182,8 +196,8 @@ app.get('/vehicles', async (req, res) => {
         inv.inv_miles,
         inv.inv_color,
         class.classification_name
-      FROM inventory inv
-      INNER JOIN classification class ON inv.classification_id = class.classification_id
+      FROM cse340.inventory inv
+      INNER JOIN cse340.classification class ON inv.classification_id = class.classification_id
       ORDER BY inv.inv_make, inv.inv_model
     `);
 
@@ -199,6 +213,49 @@ app.get('/vehicles', async (req, res) => {
       error: error.message
     });
   }
+});
+
+/**
+ * INTENTIONAL ERROR ROUTE (for testing 500 error handling)
+ * =========================================================
+ * This route intentionally throws an error to test error middleware
+ * Link will be added to footer for testing purposes
+ */
+app.get('/trigger-error', (req, res, next) => {
+  // Intentionally throw an error
+  const error = new Error('Intentional 500 error triggered for testing');
+  error.status = 500;
+  next(error);
+});
+
+/**
+ * ERROR HANDLING MIDDLEWARE
+ * ==========================
+ * These middlewares MUST come after all routes
+ * They catch errors from any route above
+ */
+
+// 404 Not Found handler - catches requests to non-existent routes
+app.use((req, res, next) => {
+  const error = new Error(`Route not found: ${req.originalUrl}`);
+  error.status = 404;
+  next(error);
+});
+
+// General error handler - catches all errors passed via next(error)
+app.use(async (err, req, res, next) => {
+  const nav = await utilities.getNav();
+  const status = err.status || 500;
+  const message = err.message || 'An unexpected error occurred';
+
+  console.error(`❌ Error ${status}:`, message);
+
+  res.status(status);
+  res.render('errors/error', {
+    title: status === 404 ? 'Page Not Found' : 'Server Error',
+    message: message,
+    nav
+  });
 });
 
 /**
