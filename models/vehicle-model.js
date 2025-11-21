@@ -3,7 +3,7 @@ const pool = require("../database/connection")
 /* ***************************
  *  Get all classification data
  * ************************** */
-async function getClassifications(){
+async function getClassifications() {
   return await pool.query("SELECT * FROM cse340.classification ORDER BY classification_name")
 }
 
@@ -61,4 +61,51 @@ async function getVehicleById(inv_id) {
   }
 }
 
-module.exports = { getClassifications, getClassificationById, getInventoryByClassificationId, getVehicleById }
+/* ***************************
+ *  Add new classification
+ * ************************** */
+async function addClassification(classification_name) {
+  try {
+    const sql = "INSERT INTO cse340.classification (classification_name) VALUES ($1) RETURNING *"
+    return await pool.query(sql, [classification_name])
+  } catch (error) {
+    return error.message
+  }
+}
+
+/* ***************************
+ *  Add new inventory item
+ * ************************** */
+async function addInventory(
+  inv_make,
+  inv_model,
+  inv_year,
+  inv_description,
+  inv_image,
+  inv_thumbnail,
+  inv_price,
+  inv_miles,
+  inv_color,
+  classification_id
+) {
+  try {
+    const sql =
+      "INSERT INTO cse340.inventory (inv_make, inv_model, inv_year, inv_description, inv_image, inv_thumbnail, inv_price, inv_miles, inv_color, classification_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *"
+    return await pool.query(sql, [
+      inv_make,
+      inv_model,
+      inv_year,
+      inv_description,
+      inv_image,
+      inv_thumbnail,
+      inv_price,
+      inv_miles,
+      inv_color,
+      classification_id,
+    ])
+  } catch (error) {
+    return error.message
+  }
+}
+
+module.exports = { getClassifications, getClassificationById, getInventoryByClassificationId, getVehicleById, addClassification, addInventory }

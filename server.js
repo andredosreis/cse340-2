@@ -25,6 +25,9 @@ const path = require('path');
 // Import database connection pool
 // Isso vai testar a conexão quando o servidor iniciar
 const pool = require('./database/connection');
+const session = require("express-session")
+const flash = require("connect-flash")
+const bodyParser = require("body-parser")
 
 // Import utilities and routes
 const utilities = require('./utilities/');
@@ -48,6 +51,29 @@ app.set('views', './views');
 
 app.use(express.static('public'));
 app.use('/images', express.static('images'));
+
+/* *****************======
+ * Middleware
+ * *****************======*/
+app.use(bodyParser.json())
+app.use(bodyParser.urlencoded({ extended: true })) // for parsing application/x-www-form-urlencoded
+app.use(session({
+  store: new (require('connect-pg-simple')(session))({
+    createTableIfMissing: true,
+    pool,
+  }),
+  secret: process.env.SESSION_SECRET || 'supersecret',
+  resave: true,
+  saveUninitialized: true,
+  name: 'sessionId',
+}))
+
+// Express Messages Middleware
+app.use(flash())
+app.use(function (req, res, next) {
+  res.locals.flash = req.flash('notice')
+  next()
+})
 
 /**
  * ROUTES

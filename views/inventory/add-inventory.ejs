@@ -1,0 +1,111 @@
+<%# Content Heading %>
+    <% if (flash) { %>
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+            <%= flash %>
+        </div>
+        <% } %>
+
+            <% if (errors) { %>
+                <ul
+                    class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 list-disc list-inside">
+                    <% errors.array().forEach(error=> { %>
+                        <li>
+                            <%= error.msg %>
+                        </li>
+                        <% }) %>
+                </ul>
+                <% } %>
+
+                    <div class="max-w-2xl mx-auto bg-cyan-500 p-8 rounded-lg shadow-md">
+                        <h1 class="text-2xl font-bold mb-4 text-white">
+                            <%= title %>
+                        </h1>
+
+                        <p class="italic text-white mb-4">ALL FIELDS ARE REQUIRED.</p>
+
+                        <form action="/inv/add-inventory" method="post" class="space-y-4">
+                            <fieldset class="border-2 border-white p-4 rounded">
+                                <legend class="text-lg font-semibold px-2 text-white">Vehicle Details</legend>
+
+                                <div class="flex flex-col mb-4">
+                                    <label for="classification_id"
+                                        class="font-semibold text-white mb-1">Classification</label>
+                                    <select id="classification_id" name="classification_id" required
+                                        class="border border-gray-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-black">
+                                        <option value="">Choose a Classification</option>
+                                        <% if (classificationList) { %>
+                                            <%- classificationList %>
+                                                <% } %>
+                                    </select>
+                                </div>
+
+                                <div class="flex flex-col mb-4">
+                                    <label for="inv_make" class="font-semibold text-white mb-1">Make</label>
+                                    <input type="text" id="inv_make" name="inv_make" required minlength="3"
+                                        placeholder="Min of 3 characters" value="<%= locals.inv_make %>"
+                                        class="border border-gray-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-black">
+                                </div>
+
+                                <div class="flex flex-col mb-4">
+                                    <label for="inv_model" class="font-semibold text-white mb-1">Model</label>
+                                    <input type="text" id="inv_model" name="inv_model" required minlength="3"
+                                        placeholder="Min of 3 characters" value="<%= locals.inv_model %>"
+                                        class="border border-gray-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-black">
+                                </div>
+
+                                <div class="flex flex-col mb-4">
+                                    <label for="inv_description"
+                                        class="font-semibold text-white mb-1">Description</label>
+                                    <textarea id="inv_description" name="inv_description" required
+                                        class="border border-gray-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 h-32 text-black"><%= locals.inv_description %></textarea>
+                                </div>
+
+                                <div class="flex flex-col mb-4">
+                                    <label for="inv_image" class="font-semibold text-white mb-1">Image Path</label>
+                                    <input type="text" id="inv_image" name="inv_image" required
+                                        value="<%= locals.inv_image || '/images/vehicles/no-image.png' %>"
+                                        class="border border-gray-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-black">
+                                </div>
+
+                                <div class="flex flex-col mb-4">
+                                    <label for="inv_thumbnail" class="font-semibold text-white mb-1">Thumbnail
+                                        Path</label>
+                                    <input type="text" id="inv_thumbnail" name="inv_thumbnail" required
+                                        value="<%= locals.inv_thumbnail || '/images/vehicles/no-image-tn.png' %>"
+                                        class="border border-gray-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-black">
+                                </div>
+
+                                <div class="flex flex-col mb-4">
+                                    <label for="inv_price" class="font-semibold text-white mb-1">Price</label>
+                                    <input type="number" id="inv_price" name="inv_price" required step="0.01"
+                                        placeholder="Decimal or integer" value="<%= locals.inv_price %>"
+                                        class="border border-gray-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-black">
+                                </div>
+
+                                <div class="flex flex-col mb-4">
+                                    <label for="inv_year" class="font-semibold text-white mb-1">Year</label>
+                                    <input type="number" id="inv_year" name="inv_year" required minlength="4"
+                                        maxlength="4" placeholder="4-digit year" value="<%= locals.inv_year %>"
+                                        class="border border-gray-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-black">
+                                </div>
+
+                                <div class="flex flex-col mb-4">
+                                    <label for="inv_miles" class="font-semibold text-white mb-1">Miles</label>
+                                    <input type="number" id="inv_miles" name="inv_miles" required
+                                        placeholder="Digits only" value="<%= locals.inv_miles %>"
+                                        class="border border-gray-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-black">
+                                </div>
+
+                                <div class="flex flex-col mb-4">
+                                    <label for="inv_color" class="font-semibold text-white mb-1">Color</label>
+                                    <input type="text" id="inv_color" name="inv_color" required
+                                        value="<%= locals.inv_color %>"
+                                        class="border border-gray-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-black">
+                                </div>
+
+                                <button type="submit"
+                                    class="w-full bg-white text-cyan-700 font-bold py-2 px-4 rounded hover:bg-gray-100 transition duration-300">Add
+                                    Vehicle</button>
+                            </fieldset>
+                        </form>
+                    </div>

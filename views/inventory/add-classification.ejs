@@ -1,0 +1,45 @@
+<%# Content Heading %>
+    <% if (flash) { %>
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+            <%= flash %>
+        </div>
+        <% } %>
+
+            <% if (errors) { %>
+                <ul
+                    class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 list-disc list-inside">
+                    <% errors.array().forEach(error=> { %>
+                        <li>
+                            <%= error.msg %>
+                        </li>
+                        <% }) %>
+                </ul>
+                <% } %>
+
+                    <div class="max-w-md mx-auto bg-cyan-500 p-8 rounded-lg shadow-md">
+                        <h1 class="text-2xl font-bold mb-4 text-white">
+                            <%= title %>
+                        </h1>
+
+                        <p class="italic text-white mb-4">ALL FIELDS ARE REQUIRED.</p>
+
+                        <form action="/inv/add-classification" method="post" class="space-y-4">
+                            <fieldset class="border-2 border-white p-4 rounded">
+                                <legend class="text-lg font-semibold px-2 text-white">New Classification</legend>
+
+                                <div class="flex flex-col mt-2">
+                                    <label for="classification_name"
+                                        class="font-semibold text-white mb-1">Classification Name:</label>
+                                    <span class="text-sm text-white/80 mb-1">Name must be alphabetic characters only (no
+                                        spaces or special characters).</span>
+                                    <input type="text" id="classification_name" name="classification_name" required
+                                        pattern="^[a-zA-Z]+$" value="<%= locals.classification_name %>"
+                                        class="border border-gray-300 rounded p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-black">
+                                </div>
+
+                                <button type="submit"
+                                    class="w-full bg-white text-cyan-700 font-bold py-2 px-4 rounded mt-4 hover:bg-gray-100 transition duration-300">Add
+                                    Classification</button>
+                            </fieldset>
+                        </form>
+                    </div>
