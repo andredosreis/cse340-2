@@ -69,7 +69,7 @@ async function addClassification(classification_name) {
     const sql = "INSERT INTO cse340.classification (classification_name) VALUES ($1) RETURNING *"
     return await pool.query(sql, [classification_name])
   } catch (error) {
-    return error.message
+    return null
   }
 }
 
@@ -104,7 +104,7 @@ async function addInventory(
       classification_id,
     ])
   } catch (error) {
-    return error.message
+    return null
   }
 }
 
