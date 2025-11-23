@@ -2,6 +2,7 @@
 agente-cursor/
 docs/
 
+
 # Dependencies
 node_modules/
 
@@ -34,3 +35,5 @@ build/
 # Temporary files
 *.tmp
 *.temp
+*.zip
+
