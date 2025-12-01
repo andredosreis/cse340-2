@@ -5,8 +5,56 @@
     <div class="flex items-center gap-2">
       <span class="text-[18px] md:text-[20px] font-semibold tracking-tight">CSE Motors</span>
     </div>
-    <!-- Account -->
-    <a href="#" class="text-[12px] md:text-[12px] opacity-90 hover:opacity-100 underline-offset-2 hover:underline">My Account</a>
+
+    <%# ========================================== %>
+    <%# DYNAMIC ACCOUNT SECTION %>
+    <%# ========================================== %>
+    <%# accountData vem de res.locals (definido no middleware) %>
+    <%# Se accountData existe = usuário está logado %>
+    <%# Se accountData é null = usuário não está logado %>
+
+    <!-- Account Section -->
+    <div class="flex items-center gap-3">
+      <% if (typeof accountData !== 'undefined' && accountData) { %>
+        <%# USUÁRIO ESTÁ LOGADO %>
+        <%# Mostrar: "Welcome, Nome | Logout" %>
+
+        <span class="text-[11px] md:text-[12px] opacity-80">
+          Welcome, <strong class="opacity-100"><%= accountData.account_firstname %></strong>!
+        </span>
+
+        <a
+          href="/account/"
+          class="text-[11px] md:text-[12px] opacity-90 hover:opacity-100 underline-offset-2 hover:underline"
+          title="Manage your account"
+        >
+          My Account
+        </a>
+
+        <span class="text-[11px] opacity-50">|</span>
+
+        <a
+          href="/account/logout"
+          class="text-[11px] md:text-[12px] opacity-90 hover:opacity-100 underline-offset-2 hover:underline text-red-300"
+          title="Sign out"
+        >
+          Logout
+        </a>
+
+      <% } else { %>
+        <%# USUÁRIO NÃO ESTÁ LOGADO %>
+        <%# Mostrar: "My Account" (link para login) %>
+
+        <a
+          href="/account/login"
+          class="text-[12px] md:text-[12px] opacity-90 hover:opacity-100 underline-offset-2 hover:underline"
+          title="Sign in to your account"
+        >
+          My Account
+        </a>
+
+      <% } %>
+    </div>
   </header>
 
   <!-- Thin separator like the mockup -->

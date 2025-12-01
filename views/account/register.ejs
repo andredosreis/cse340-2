@@ -1,0 +1,136 @@
+<%# ============================================== %>
+<%# REGISTER VIEW %>
+<%# ============================================== %>
+<%# Esta view exibe o formulário de cadastro %>
+<%# URL: /account/register %>
+<%# ============================================== %>
+
+<%# Flash message %>
+<% if (flash && flash.length > 0) { %>
+  <div class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 mb-4 rounded">
+    <p class="font-medium"><%= flash %></p>
+  </div>
+<% } %>
+
+<%# Container principal %>
+<div class="max-w-md mx-auto mt-10 bg-white p-8 border border-gray-300 rounded-lg shadow-lg">
+
+  <h1 class="text-3xl font-bold mb-6 text-center text-gray-800">Create Account</h1>
+
+  <%# Instruções para senha forte %>
+  <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+    <p class="text-sm text-yellow-700">
+      <strong>Password Requirements:</strong><br>
+      • Minimum 12 characters<br>
+      • At least 1 uppercase letter (A-Z)<br>
+      • At least 1 lowercase letter (a-z)<br>
+      • At least 1 number (0-9)<br>
+      • At least 1 special character (@$!%*?&)
+    </p>
+  </div>
+
+  <%# Exibir erros de validação %>
+  <% if (errors) { %>
+    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+      <p class="font-bold mb-2">Please correct the following errors:</p>
+      <ul class="list-disc list-inside">
+        <% errors.array().forEach(error => { %>
+          <li><%= error.msg %></li>
+        <% }) %>
+      </ul>
+    </div>
+  <% } %>
+
+  <%# ========================================== %>
+  <%# FORMULÁRIO DE REGISTRO %>
+  <%# ========================================== %>
+  <form action="/account/register" method="post" class="space-y-4">
+
+    <%# Campo 1: Nome %>
+    <div>
+      <label for="account_firstname" class="block text-sm font-medium text-gray-700 mb-1">
+        First Name *
+      </label>
+      <input
+        type="text"
+        id="account_firstname"
+        name="account_firstname"
+        required
+        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+        placeholder="John"
+        value="<%= locals.account_firstname || '' %>"
+      >
+    </div>
+
+    <%# Campo 2: Sobrenome %>
+    <div>
+      <label for="account_lastname" class="block text-sm font-medium text-gray-700 mb-1">
+        Last Name *
+      </label>
+      <input
+        type="text"
+        id="account_lastname"
+        name="account_lastname"
+        required
+        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+        placeholder="Doe"
+        value="<%= locals.account_lastname || '' %>"
+      >
+    </div>
+
+    <%# Campo 3: Email %>
+    <div>
+      <label for="account_email" class="block text-sm font-medium text-gray-700 mb-1">
+        Email Address *
+      </label>
+      <input
+        type="email"
+        id="account_email"
+        name="account_email"
+        required
+        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+        placeholder="john.doe@example.com"
+        value="<%= locals.account_email || '' %>"
+      >
+    </div>
+
+    <%# Campo 4: Senha com validação no front-end %>
+    <div>
+      <label for="account_password" class="block text-sm font-medium text-gray-700 mb-1">
+        Password *
+      </label>
+      <input
+        type="password"
+        id="account_password"
+        name="account_password"
+        required
+        pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{12,}$"
+        title="Password must be at least 12 characters with 1 uppercase, 1 lowercase, 1 number, and 1 special character (@$!%*?&)"
+        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+        placeholder="Create a strong password"
+      >
+      <%# pattern = validação HTML5 (adicional à validação server-side) %>
+    </div>
+
+    <%# Botão de Submit %>
+    <button
+      type="submit"
+      class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition font-medium"
+    >
+      Register
+    </button>
+  </form>
+
+  <%# Link para login %>
+  <p class="mt-6 text-center text-sm text-gray-600">
+    Already have an account?
+    <a href="/account/login" class="text-blue-600 hover:text-blue-800 font-medium underline">
+      Login here
+    </a>
+  </p>
+
+  <%# Nota de privacidade %>
+  <p class="mt-4 text-xs text-gray-500 text-center">
+    By registering, you agree to our Terms of Service and Privacy Policy.
+  </p>
+</div>

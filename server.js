@@ -32,6 +32,10 @@ const bodyParser = require("body-parser")
 // Import utilities and routes
 const utilities = require('./utilities/');
 const inventoryRoute = require('./routes/inventoryRoute');
+const accountRoute = require('./routes/accountRoute');
+
+// Import authentication middleware
+const authMiddleware = require('./middleware/authMiddleware');
 
 // Create the Express app (our server)
 const app = express();
@@ -75,10 +79,20 @@ app.use(function (req, res, next) {
   next()
 })
 
+// Authentication Middleware - Make account data available to all views
+// IMPORTANTE: Este middleware deve vir DEPOIS do session middleware
+// Ele torna accountData disponível em TODAS as views EJS
+app.use(authMiddleware.makeAccountDataAvailable)
+
 /**
  * ROUTES
  * ======
  */
+
+// Account routes (Authentication & Authorization)
+// Todas as rotas de /account/* serão tratadas pelo accountRoute
+// Exemplos: /account/login, /account/register, /account/logout, /account/
+app.use('/account', accountRoute);
 
 // Inventory routes (MVC architecture)
 app.use('/inv', inventoryRoute);

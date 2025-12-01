@@ -5,35 +5,64 @@ const invController = require("../controllers/vehicleController")
 const utilities = require("../utilities/")
 const regValidate = require('../utilities/inventory-validation')
 
-// Route to build inventory by classification view
-router.get("/", utilities.handleErrors(invController.buildManagement))
+// Import authentication middleware
+const authMiddleware = require("../middleware/authMiddleware")
 
-// Route to build add classification view
-router.get("/add-classification", utilities.handleErrors(invController.buildAddClassification))
+// ==========================================
+// ROTAS PROTEGIDAS (Apenas Admin/Employee)
+// ==========================================
+// authMiddleware.checkAccountType verifica se usuário é Admin ou Employee
+// Se não for, redireciona para /account/ com mensagem de erro
 
-// Route to process add classification
+// Route to build inventory management view (PROTEGIDA)
+router.get(
+    "/",
+    authMiddleware.checkAccountType,
+    utilities.handleErrors(invController.buildManagement)
+)
+
+// Route to build add classification view (PROTEGIDA)
+router.get(
+    "/add-classification",
+    authMiddleware.checkAccountType,
+    utilities.handleErrors(invController.buildAddClassification)
+)
+
+// Route to process add classification (PROTEGIDA)
 router.post(
     "/add-classification",
+    authMiddleware.checkAccountType,
     regValidate.classificationRules(),
     regValidate.checkClassificationData,
     utilities.handleErrors(invController.addClassification)
 )
 
-// Route to build add inventory view
-router.get("/add-inventory", utilities.handleErrors(invController.buildAddInventory))
+// Route to build add inventory view (PROTEGIDA)
+router.get(
+    "/add-inventory",
+    authMiddleware.checkAccountType,
+    utilities.handleErrors(invController.buildAddInventory)
+)
 
-// Route to process add inventory
+// Route to process add inventory (PROTEGIDA)
 router.post(
     "/add-inventory",
+    authMiddleware.checkAccountType,
     regValidate.inventoryRules(),
     regValidate.checkInventoryData,
     utilities.handleErrors(invController.addInventory)
 )
 
-// Route to build inventory by classification view
+// ==========================================
+// ROTAS PÚBLICAS (Todos podem acessar)
+// ==========================================
+// Estas rotas são para visualização apenas
+// Não precisam de autenticação
+
+// Route to build inventory by classification view (PÚBLICA)
 router.get("/type/:classificationId", utilities.handleErrors(invController.buildByClassificationId))
 
-// Route to build vehicle detail view
+// Route to build vehicle detail view (PÚBLICA)
 router.get("/detail/:vehicleId", utilities.handleErrors(invController.buildByVehicleId))
 
 module.exports = router

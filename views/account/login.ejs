@@ -1,0 +1,95 @@
+<%# ============================================== %>
+<%# LOGIN VIEW %>
+<%# ============================================== %>
+<%# Esta view exibe o formulário de login %>
+<%# URL: /account/login %>
+<%# ============================================== %>
+
+<%# Flash message (mensagem temporária) %>
+<%# Aparece quando: usuário se registra, erro de login, etc. %>
+<% if (flash && flash.length > 0) { %>
+  <div class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 mb-4 rounded">
+    <p class="font-medium"><%= flash %></p>
+  </div>
+<% } %>
+
+<%# Container principal do formulário %>
+<div class="max-w-md mx-auto mt-10 bg-white p-8 border border-gray-300 rounded-lg shadow-lg">
+
+  <%# Título da página %>
+  <h1 class="text-3xl font-bold mb-6 text-center text-gray-800">Login</h1>
+
+  <%# Exibir erros de validação (se houver) %>
+  <%# errors vem do controller quando validação falha %>
+  <% if (errors) { %>
+    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+      <p class="font-bold mb-2">Please correct the following errors:</p>
+      <ul class="list-disc list-inside">
+        <% errors.array().forEach(error => { %>
+          <li><%= error.msg %></li>
+        <% }) %>
+      </ul>
+    </div>
+  <% } %>
+
+  <%# ========================================== %>
+  <%# FORMULÁRIO DE LOGIN %>
+  <%# ========================================== %>
+  <%# action="/account/login" = envia para esta URL %>
+  <%# method="post" = usa POST (não GET, por segurança) %>
+  <form action="/account/login" method="post" class="space-y-4">
+
+    <%# Campo 1: Email %>
+    <div>
+      <label for="account_email" class="block text-sm font-medium text-gray-700 mb-1">
+        Email Address *
+      </label>
+      <input
+        type="email"
+        id="account_email"
+        name="account_email"
+        required
+        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+        placeholder="you@example.com"
+        value="<%= locals.account_email || '' %>"
+      >
+      <%# locals.account_email = repopula campo se houve erro %>
+      <%# || '' = se não existir, usa string vazia %>
+    </div>
+
+    <%# Campo 2: Senha %>
+    <div>
+      <label for="account_password" class="block text-sm font-medium text-gray-700 mb-1">
+        Password *
+      </label>
+      <input
+        type="password"
+        id="account_password"
+        name="account_password"
+        required
+        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+        placeholder="Enter your password"
+      >
+      <p class="text-xs text-gray-500 mt-1">
+        Password must be at least 12 characters with 1 uppercase, 1 number, and 1 special character.
+      </p>
+    </div>
+
+    <%# Botão de Submit %>
+    <button
+      type="submit"
+      class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition font-medium"
+    >
+      Login
+    </button>
+  </form>
+
+  <%# Link para registro %>
+  <%# Se usuário não tem conta, vai para /account/register %>
+  <p class="mt-6 text-center text-sm text-gray-600">
+    Don't have an account?
+    <a href="/account/register" class="text-blue-600 hover:text-blue-800 font-medium underline">
+      Register here
+    </a>
+  </p>
+</div>
