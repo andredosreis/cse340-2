@@ -14,30 +14,8 @@
 
 <body class="text-gray-900" style="background:url('/images/site/small_check.png') repeat;">
 
-  <div class="mx-auto bg-white shadow md:my-6 border-8 border-black max-w-[980px]">
-    <!-- Top bar (dark) -->
-    <header class="flex items-center justify-between px-4 py-2 bg-slate-800 text-white">
-      <!-- Brand -->
-      <div class="flex items-center gap-2">
-        <span class="text-[18px] md:text-[20px] font-semibold tracking-tight">CSE Motors</span>
-      </div>
-      <!-- Account -->
-      <a href="#" class="text-[12px] md:text-[12px] opacity-90 hover:opacity-100 underline-offset-2 hover:underline">My
-        Account</a>
-    </header>
-
-    <!-- Thin separator like the mockup -->
-    <div class="h-[6px] bg-cyan-400"></div>
-
-    <!-- Nav - Dynamic navigation from database -->
-    <nav class="flex flex-wrap items-center gap-2 px-4 py-2 text-[13px] border-b">
-      <%- nav %>
-    </nav>
-
-    <!-- Content shell -->
-    <main class="p-3 md:p-4 space-y-6 md:space-y-8">
-      <%- body %>
-    </main>
+  <%- include('partials/header.ejs') %>
+    <%- body %>
     <footer class="text-center text-sm text-gray-500 border-t px-4 py-3">
       <p>© 2025, CSE 340 App</p>
       <p class="mt-2"><a href="/trigger-error" class="text-blue-600 hover:underline">Trigger Error (Testing)</a></p>
