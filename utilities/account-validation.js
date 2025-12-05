@@ -211,6 +211,127 @@ validate.checkLoginData = async (req, res, next) => {
   next()
 }
 
+/*  **********************************
+ *  REGRAS DE VALIDAÇÃO: UPDATE ACCOUNT
+ * **********************************
+ *
+ * Valida atualização de dados da conta (nome, sobrenome, email)
+ */
+validate.updateAccountRules = () => {
+  return [
+    // VALIDAÇÃO 1: First Name
+    body("account_firstname")
+      .trim()
+      .isLength({ min: 1 })
+      .withMessage("Please provide a first name."),
+
+    // VALIDAÇÃO 2: Last Name
+    body("account_lastname")
+      .trim()
+      .isLength({ min: 1 })
+      .withMessage("Please provide a last name."),
+
+    // VALIDAÇÃO 3: Email
+    body("account_email")
+      .trim()
+      .isEmail()
+      .normalizeEmail()
+      .withMessage("A valid email is required.")
+      // Validação customizada: verificar se email já existe (exceto o próprio)
+      .custom(async (account_email, { req }) => {
+        const account_id = req.body.account_id
+        const account = await accountModel.getAccountByEmail(account_email)
+        // Se encontrou uma conta E não é a mesma conta
+        if (account && account.account_id != account_id) {
+          throw new Error("Email already exists. Please use a different email.")
+        }
+      }),
+
+    // VALIDAÇÃO 4: Account ID (hidden field)
+    body("account_id")
+      .trim()
+      .isInt()
+      .withMessage("Invalid account ID."),
+  ]
+}
+
+/* ******************************
+ * VERIFICAR DADOS DE UPDATE ACCOUNT
+ * ******************************
+ */
+validate.checkUpdateData = async (req, res, next) => {
+  const { account_id, account_firstname, account_lastname, account_email } = req.body
+  let errors = validationResult(req)
+
+  if (!errors.isEmpty()) {
+    let nav = await utilities.getNav()
+
+    res.render("account/update-account", {
+      errors,
+      title: "Update Account Information",
+      nav,
+      account_id,
+      account_firstname,
+      account_lastname,
+      account_email,
+    })
+    return
+  }
+
+  next()
+}
+
+/*  **********************************
+ *  REGRAS DE VALIDAÇÃO: UPDATE PASSWORD
+ * **********************************
+ *
+ * Valida a nova senha (mesmos requisitos do registro)
+ */
+validate.updatePasswordRules = () => {
+  return [
+    // VALIDAÇÃO 1: Nova senha (Strong Password)
+    body("account_password")
+      .trim()
+      .isStrongPassword({
+        minLength: 8,
+        minLowercase: 1,
+        minUppercase: 1,
+        minNumbers: 1,
+        minSymbols: 1,
+      })
+      .withMessage("Password does not meet requirements. Must be 12+ characters with uppercase, lowercase, number, and special character."),
+
+    // VALIDAÇÃO 2: Account ID
+    body("account_id")
+      .trim()
+      .isInt()
+      .withMessage("Invalid account ID."),
+  ]
+}
+
+/* ******************************
+ * VERIFICAR DADOS DE UPDATE PASSWORD
+ * ******************************
+ */
+validate.checkPasswordData = async (req, res, next) => {
+  const { account_id } = req.body
+  let errors = validationResult(req)
+
+  if (!errors.isEmpty()) {
+    let nav = await utilities.getNav()
+
+    res.render("account/update-password", {
+      errors,
+      title: "Change Password",
+      nav,
+      account_id,
+    })
+    return
+  }
+
+  next()
+}
+
 // ==============================================
 // EXPORTAR FUNÇÕES
 // ==============================================

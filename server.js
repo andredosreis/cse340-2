@@ -28,6 +28,7 @@ const pool = require('./database/connection');
 const session = require("express-session")
 const flash = require("connect-flash")
 const bodyParser = require("body-parser")
+const cookieParser = require("cookie-parser")
 
 // Import utilities and routes
 const utilities = require('./utilities/');
@@ -59,6 +60,7 @@ app.use('/images', express.static('images'));
 /* *****************======
  * Middleware
  * *****************======*/
+app.use(cookieParser())
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true })) // for parsing application/x-www-form-urlencoded
 app.use(session({
@@ -82,6 +84,7 @@ app.use(function (req, res, next) {
 // Authentication Middleware - Make account data available to all views
 // IMPORTANTE: Este middleware deve vir DEPOIS do session middleware
 // Ele torna accountData disponível em TODAS as views EJS
+app.use(authMiddleware.checkJWTToken)
 app.use(authMiddleware.makeAccountDataAvailable)
 
 /**

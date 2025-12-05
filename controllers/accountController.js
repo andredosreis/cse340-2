@@ -20,6 +20,10 @@ const utilities = require("../utilities/")
 // Importar bcrypt para comparar senhas
 const bcrypt = require("bcryptjs")
 
+// Importar JWT para criar tokens
+const jwt = require("jsonwebtoken")
+require("dotenv").config()
+
 // Criar objeto para armazenar funções do controller
 const accountCont = {}
 
@@ -234,22 +238,41 @@ accountCont.accountLogin = async function (req, res) {
   if (passwordMatch) {
     // ✅ SENHA CORRETA - Fazer login
 
-    // PASSO 4: Remover senha dos dados antes de salvar na sessão
+    // PASSO 4: Remover senha dos dados antes de salvar
     // ===========================================================
-    // SEGURANÇA: Nunca armazenar senha (nem hash) na sessão
+    // SEGURANÇA: Nunca armazenar senha (nem hash) no token/sessão
     delete accountData.account_password
 
-    // PASSO 5: Criar sessão do usuário
+    // PASSO 5: Criar JWT Token
     // =================================
-    // req.session = objeto de sessão (persiste entre requisições)
-    // express-session salva automaticamente no PostgreSQL
+    // JWT = JSON Web Token (token criptografado)
+    // Contém dados do usuário de forma segura
+    // Expira em 1 hora (3600 segundos)
+    const accessToken = jwt.sign(
+      accountData,
+      process.env.ACCESS_TOKEN_SECRET,
+      { expiresIn: 3600 }
+    )
+
+    // PASSO 6: Enviar JWT como cookie HTTP-only
+    // ===========================================
+    // httpOnly: true = JavaScript não pode ler (mais seguro)
+    // maxAge: 3600 * 1000 = 1 hora em milissegundos
+    // secure: true em produção (HTTPS apenas)
+    if (process.env.NODE_ENV === 'development') {
+      res.cookie("jwt", accessToken, { httpOnly: true, maxAge: 3600 * 1000 })
+    } else {
+      res.cookie("jwt", accessToken, { httpOnly: true, secure: true, maxAge: 3600 * 1000 })
+    }
+
+    // PASSO 7: Também salvar na sessão (fallback)
     req.session.loggedin = true
     req.session.accountData = accountData
 
-    // PASSO 6: Mensagem de boas-vindas
+    // PASSO 8: Mensagem de boas-vindas
     req.flash("notice", `Welcome back, ${accountData.account_firstname}!`)
 
-    // PASSO 7: Redirecionar para dashboard
+    // PASSO 9: Redirecionar para dashboard
     // =====================================
     // Depois do login, vai para /account/ (dashboard)
     res.redirect("/account/")
@@ -272,27 +295,33 @@ accountCont.accountLogin = async function (req, res) {
  *
  * ROTA: GET /account/logout
  *
- * OBJETIVO: Destruir sessão e deslogar usuário
+ * OBJETIVO: Destruir sessão, remover JWT e deslogar usuário
  *
  * FLUXO:
  * 1. Usuário clica em "Logout"
- * 2. Controller destrói sessão (req.session.destroy)
- * 3. Limpa cookie de sessão
- * 4. Redireciona para home
+ * 2. Controller remove cookie JWT
+ * 3. Controller destrói sessão
+ * 4. Limpa cookie de sessão
+ * 5. Redireciona para home
  */
 accountCont.accountLogout = function (req, res) {
-  // req.session.destroy() remove sessão do banco e memória
+  // PASSO 1: Remover cookie JWT
+  // ============================
+  // Isso é ESSENCIAL para a rubrica - cookie não deve existir após logout
+  res.clearCookie('jwt')
+
+  // PASSO 2: Destruir sessão
   req.session.destroy(err => {
     if (err) {
       // Se der erro ao destruir sessão
       console.error("Logout error:", err)
       res.redirect("/")
     } else {
-      // Limpar cookie de sessão do navegador
+      // PASSO 3: Limpar cookie de sessão do navegador
       // 'sessionId' = nome configurado em server.js
       res.clearCookie('sessionId')
 
-      // Redirecionar para home
+      // PASSO 4: Redirecionar para home
       res.redirect("/")
     }
   })
@@ -328,6 +357,150 @@ accountCont.buildAccountManagement = async function (req, res, next) {
     nav,
     errors: null,
   })
+}
+
+/* ***************************
+ *  FUNÇÃO 7: Mostrar formulário de UPDATE ACCOUNT
+ * ***************************
+ *
+ * ROTA: GET /account/update
+ *
+ * OBJETIVO: Exibir formulário para atualizar dados da conta
+ */
+accountCont.buildUpdateAccount = async function (req, res, next) {
+  let nav = await utilities.getNav()
+
+  // Pegar dados do usuário logado
+  const accountData = res.locals.accountData
+
+  res.render("account/update-account", {
+    title: "Update Account Information",
+    nav,
+    errors: null,
+    account_id: accountData.account_id,
+    account_firstname: accountData.account_firstname,
+    account_lastname: accountData.account_lastname,
+    account_email: accountData.account_email,
+  })
+}
+
+/* ***************************
+ *  FUNÇÃO 8: Processar UPDATE ACCOUNT
+ * ***************************
+ *
+ * ROTA: POST /account/update
+ *
+ * OBJETIVO: Atualizar nome, sobrenome e email no banco
+ */
+accountCont.updateAccount = async function (req, res) {
+  let nav = await utilities.getNav()
+
+  const {
+    account_id,
+    account_firstname,
+    account_lastname,
+    account_email
+  } = req.body
+
+  // Atualizar no banco de dados
+  const updateResult = await accountModel.updateAccount(
+    account_id,
+    account_firstname,
+    account_lastname,
+    account_email
+  )
+
+  if (updateResult) {
+    // ✅ SUCESSO - Atualizar dados na sessão e JWT
+
+    // Buscar dados atualizados do banco
+    const updatedAccount = await accountModel.getAccountById(account_id)
+    delete updatedAccount.account_password
+
+    // Atualizar JWT com novos dados
+    const accessToken = jwt.sign(
+      updatedAccount,
+      process.env.ACCESS_TOKEN_SECRET,
+      { expiresIn: 3600 }
+    )
+
+    if (process.env.NODE_ENV === 'development') {
+      res.cookie("jwt", accessToken, { httpOnly: true, maxAge: 3600 * 1000 })
+    } else {
+      res.cookie("jwt", accessToken, { httpOnly: true, secure: true, maxAge: 3600 * 1000 })
+    }
+
+    // Atualizar sessão
+    req.session.accountData = updatedAccount
+
+    req.flash("notice", "Account information updated successfully!")
+    res.redirect("/account/")
+  } else {
+    // ❌ ERRO
+    req.flash("notice", "Sorry, the update failed. Please try again.")
+    res.status(501).render("account/update-account", {
+      title: "Update Account Information",
+      nav,
+      errors: null,
+      account_id,
+      account_firstname,
+      account_lastname,
+      account_email,
+    })
+  }
+}
+
+/* ***************************
+ *  FUNÇÃO 9: Mostrar formulário de UPDATE PASSWORD
+ * ***************************
+ *
+ * ROTA: GET /account/update-password
+ *
+ * OBJETIVO: Exibir formulário para alterar senha
+ */
+accountCont.buildUpdatePassword = async function (req, res, next) {
+  let nav = await utilities.getNav()
+
+  const accountData = res.locals.accountData
+
+  res.render("account/update-password", {
+    title: "Change Password",
+    nav,
+    errors: null,
+    account_id: accountData.account_id,
+  })
+}
+
+/* ***************************
+ *  FUNÇÃO 10: Processar UPDATE PASSWORD
+ * ***************************
+ *
+ * ROTA: POST /account/update-password
+ *
+ * OBJETIVO: Atualizar senha no banco (com hash bcrypt)
+ */
+accountCont.updatePassword = async function (req, res) {
+  let nav = await utilities.getNav()
+
+  const { account_id, account_password } = req.body
+
+  // Atualizar senha no banco (model faz o hash)
+  const updateResult = await accountModel.updatePassword(account_id, account_password)
+
+  if (updateResult) {
+    // ✅ SUCESSO
+    req.flash("notice", "Password changed successfully!")
+    res.redirect("/account/")
+  } else {
+    // ❌ ERRO
+    req.flash("notice", "Sorry, the password change failed. Please try again.")
+    res.status(501).render("account/update-password", {
+      title: "Change Password",
+      nav,
+      errors: null,
+      account_id,
+    })
+  }
 }
 
 // ==============================================

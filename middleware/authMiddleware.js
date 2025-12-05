@@ -9,7 +9,57 @@
 // - Função que executa ENTRE requisição e resposta
 // - Pode bloquear acesso a rotas
 // - Pode adicionar dados à requisição
+//
+// JWT (JSON Web Token)
+// - Token criptografado que contém dados do usuário
+// - Enviado via cookie para o servidor
+// - Mais seguro que sessions para aplicações escaláveis
 // ==============================================
+
+const jwt = require("jsonwebtoken")
+require("dotenv").config()
+
+/* ***************************
+ *  MIDDLEWARE 0: Verificar JWT Token
+ * ***************************
+ *
+ * OBJETIVO: Verificar e decodificar JWT em TODAS as requisições
+ *
+ * Este middleware roda em TODAS as requisições (app.use)
+ * Se o cookie jwt existir e for válido, adiciona accountData ao res.locals
+ *
+ * FLUXO:
+ * 1. Verificar se cookie "jwt" existe
+ * 2. Se existe: verificar se token é válido
+ * 3. Se válido: decodificar e adicionar dados ao res.locals
+ * 4. Se inválido ou não existe: res.locals.loggedin = false
+ */
+function checkJWTToken(req, res, next) {
+  if (req.cookies.jwt) {
+    jwt.verify(
+      req.cookies.jwt,
+      process.env.ACCESS_TOKEN_SECRET,
+      function (err, accountData) {
+        if (err) {
+          // Token inválido ou expirado
+          res.clearCookie("jwt")
+          res.locals.loggedin = false
+          res.locals.accountData = null
+        } else {
+          // Token válido - armazenar dados
+          res.locals.loggedin = true
+          res.locals.accountData = accountData
+        }
+        next()
+      }
+    )
+  } else {
+    // Sem cookie JWT
+    res.locals.loggedin = false
+    res.locals.accountData = null
+    next()
+  }
+}
 
 /* ***************************
  *  MIDDLEWARE 1: Verificar se usuário está LOGADO
@@ -22,7 +72,7 @@
  *
  * FLUXO:
  * 1. Usuário tenta acessar rota protegida (ex: /account/)
- * 2. Middleware verifica se req.session.loggedin é true
+ * 2. Middleware verifica se existe JWT válido
  * 3. Se SIM (logado): chama next() → continua para o controller
  * 4. Se NÃO (não logado): redireciona para /account/login
  *
@@ -31,10 +81,10 @@
  * - Não tem? Vá para a fila (redirect)
  */
 function checkLogin(req, res, next) {
-  // req.session.loggedin foi definido no accountController.accountLogin()
-  // É true se usuário fez login, undefined se não fez
+  // Verifica se res.locals.loggedin foi definido pelo checkJWTToken
+  // OU se req.session.loggedin está true (fallback)
 
-  if (req.session.loggedin) {
+  if (res.locals.loggedin || req.session.loggedin) {
     // ✅ USUÁRIO ESTÁ LOGADO
     // next() = continua para o próximo middleware ou controller
     next()
@@ -58,8 +108,8 @@ function checkLogin(req, res, next) {
  * Exemplo: router.get("/inv/management", checkAccountType, controller.buildManagement)
  *
  * FLUXO:
- * 1. Primeiro verifica se está logado
- * 2. Depois verifica o account_type na sessão
+ * 1. Primeiro verifica se está logado (via JWT ou session)
+ * 2. Depois verifica o account_type
  * 3. Se Admin ou Employee: next() → continua
  * 4. Se Client ou não logado: redireciona com erro
  *
@@ -73,10 +123,12 @@ function checkLogin(req, res, next) {
  * - Client: Sem acesso (apenas visualizar)
  */
 function checkAccountType(req, res, next) {
-  // PASSO 1: Verificar se está logado
-  if (req.session.loggedin) {
-    // PASSO 2: Pegar tipo de conta da sessão
-    const accountType = req.session.accountData.account_type
+  // PASSO 1: Verificar se está logado (JWT ou session)
+  const accountData = res.locals.accountData || req.session.accountData
+
+  if (res.locals.loggedin || req.session.loggedin) {
+    // PASSO 2: Pegar tipo de conta
+    const accountType = accountData?.account_type
 
     // PASSO 3: Verificar se é Admin ou Employee
     if (accountType === 'Admin' || accountType === 'Employee') {
@@ -126,7 +178,7 @@ function checkAccountType(req, res, next) {
  * - Evita confusão
  */
 function handleLoggedIn(req, res, next) {
-  if (req.session.loggedin) {
+  if (res.locals.loggedin || req.session.loggedin) {
     // ✅ JÁ ESTÁ LOGADO
     // Redirecionar para dashboard em vez de mostrar login/registro
     return res.redirect("/account/")
@@ -149,12 +201,17 @@ function makeAccountDataAvailable(req, res, next) {
   // res.locals = variáveis disponíveis em TODAS as views EJS
   // Agora podemos usar <%= accountData %> em qualquer EJS
 
-  if (req.session.loggedin) {
-    // Se usuário está logado, disponibilizar dados na view
+  // Prioridade: JWT (res.locals) > Session
+  if (res.locals.loggedin && res.locals.accountData) {
+    // JWT já preencheu os dados - não precisa fazer nada
+  } else if (req.session.loggedin) {
+    // Fallback: usar dados da session
     res.locals.accountData = req.session.accountData
+    res.locals.loggedin = true
   } else {
     // Se não está logado, accountData é null
     res.locals.accountData = null
+    res.locals.loggedin = false
   }
 
   next()
@@ -165,6 +222,7 @@ function makeAccountDataAvailable(req, res, next) {
 // ==============================================
 // Tornar middlewares disponíveis para as rotas
 module.exports = {
+  checkJWTToken,           // Verifica e decodifica JWT
   checkLogin,              // Verifica se está logado
   checkAccountType,        // Verifica se é Admin/Employee
   handleLoggedIn,          // Redireciona se já está logado

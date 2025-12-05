@@ -188,6 +188,70 @@ router.get(
   utilities.handleErrors(accountController.buildAccountManagement)
 )
 
+/* ***************************
+ *  ROTA 7: Exibir formulário UPDATE ACCOUNT
+ * ***************************
+ *
+ * MÉTODO: GET
+ * URL: /account/update
+ * MIDDLEWARE: checkLogin
+ * CONTROLLER: buildUpdateAccount
+ */
+router.get(
+  "/update",
+  authMiddleware.checkLogin,
+  utilities.handleErrors(accountController.buildUpdateAccount)
+)
+
+/* ***************************
+ *  ROTA 8: Processar UPDATE ACCOUNT
+ * ***************************
+ *
+ * MÉTODO: POST
+ * URL: /account/update
+ * MIDDLEWARE: checkLogin, validação
+ * CONTROLLER: updateAccount
+ */
+router.post(
+  "/update",
+  authMiddleware.checkLogin,
+  regValidate.updateAccountRules(),
+  regValidate.checkUpdateData,
+  utilities.handleErrors(accountController.updateAccount)
+)
+
+/* ***************************
+ *  ROTA 9: Exibir formulário UPDATE PASSWORD
+ * ***************************
+ *
+ * MÉTODO: GET
+ * URL: /account/update-password
+ * MIDDLEWARE: checkLogin
+ * CONTROLLER: buildUpdatePassword
+ */
+router.get(
+  "/update-password",
+  authMiddleware.checkLogin,
+  utilities.handleErrors(accountController.buildUpdatePassword)
+)
+
+/* ***************************
+ *  ROTA 10: Processar UPDATE PASSWORD
+ * ***************************
+ *
+ * MÉTODO: POST
+ * URL: /account/update-password
+ * MIDDLEWARE: checkLogin, validação
+ * CONTROLLER: updatePassword
+ */
+router.post(
+  "/update-password",
+  authMiddleware.checkLogin,
+  regValidate.updatePasswordRules(),
+  regValidate.checkPasswordData,
+  utilities.handleErrors(accountController.updatePassword)
+)
+
 // ==============================================
 // EXPORTAR ROUTER
 // ==============================================
