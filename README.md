@@ -4,7 +4,7 @@ A full-stack web application for vehicle inventory management, built with Node.j
 
 ## 🚀 Live Demo
 
-- **Production URL:** [Your Render URL here]
+- **Production URL:** https://cse340-2-4hjn.onrender.com
 - **GitHub Repository:** https://github.com/andredosreis/cse340-2
 
 ---
@@ -14,8 +14,8 @@ A full-stack web application for vehicle inventory management, built with Node.j
 - ✅ User authentication (Login/Register/Logout)
 - ✅ JWT token-based session management
 - ✅ Role-based access control (Admin, Employee, Client)
-- ✅ Vehicle inventory management (CRUD)
-- ✅ Classification management
+- ✅ Vehicle inventory display (by classification and detail view)
+- ✅ Add new vehicles and classifications (Admin/Employee)
 - ✅ Account management (update profile, change password)
 - ✅ Server-side and client-side form validation
 - ✅ Responsive design with Tailwind CSS
@@ -78,8 +78,8 @@ Use these pre-configured accounts to test the application:
 
 | Email | Password | Role | Permissions |
 |-------|----------|------|-------------|
-| `admin@cse340.edu` | `Admin123!@#$` | Admin | Full access to all features |
-| `employee@cse340.edu` | `Employee123!@#$` | Employee | Can manage inventory |
+| `admin@cse340.edu` | `Admin123!@#$` | Admin | Full access (add vehicles/classifications) |
+| `employee@cse340.edu` | `Employee123!@#$` | Employee | Can add vehicles/classifications |
 | `client@cse340.edu` | `Client123!@#$` | Client | View only |
 
 ### Password Requirements
@@ -104,17 +104,17 @@ When creating or changing passwords:
 | GET | `/inv/type/:id` | View vehicles by classification |
 | GET | `/inv/detail/:id` | View vehicle details |
 
-### Account Routes (Authentication required)
+### Account Routes
 | Method | URL | Description |
 |--------|-----|-------------|
 | GET | `/account/login` | Login page |
 | POST | `/account/login` | Process login |
 | GET | `/account/register` | Registration page |
 | POST | `/account/register` | Process registration |
-| GET | `/account/` | Account dashboard |
-| GET | `/account/update` | Update account info |
+| GET | `/account/` | Account dashboard (requires login) |
+| GET | `/account/update` | Update account info (requires login) |
 | POST | `/account/update` | Process account update |
-| GET | `/account/update-password` | Change password page |
+| GET | `/account/update-password` | Change password page (requires login) |
 | POST | `/account/update-password` | Process password change |
 | GET | `/account/logout` | Logout (clears JWT cookie) |
 
@@ -153,7 +153,7 @@ cse340-2/
 ├── controllers/          # Business logic
 │   ├── accountController.js
 │   └── vehicleController.js
-├── database/             # SQL scripts
+├── database/             # SQL scripts and connection
 │   ├── schema.sql
 │   ├── account-schema.sql
 │   └── connection.js
@@ -167,7 +167,7 @@ cse340-2/
 ├── routes/               # Route definitions
 │   ├── accountRoute.js
 │   └── inventoryRoute.js
-├── utilities/            # Helper functions
+├── utilities/            # Helper functions & validation
 │   ├── index.js
 │   ├── account-validation.js
 │   └── inventory-validation.js
@@ -183,25 +183,21 @@ cse340-2/
 
 ---
 
-## 📝 Assignment Requirements Met
-
-This project fulfills the CSE 340 Assignment 5 rubric:
+## 📝 Assignment 5 Requirements
 
 | Requirement | Status |
 |-------------|--------|
-| Frontend Checklist | ✅ Complete |
-| Header (dynamic links based on login state) | ✅ Complete |
-| Greeting (conditional h2 for Admin/Employee) | ✅ Complete |
-| Routes & Controllers (account/password update) | ✅ Complete |
-| Middleware (access control) | ✅ Complete |
-| Account Model (update functions) | ✅ Complete |
-| Prepared Statements (SQL injection protection) | ✅ Complete |
-| JWT (token creation and cookie management) | ✅ Complete |
-| Logout (cookie removal) | ✅ Complete |
-| Validation (client-side + server-side) | ✅ Complete |
+| JWT token creation on login | ✅ |
+| JWT stored in httpOnly cookie | ✅ |
+| Logout clears JWT cookie | ✅ |
+| Account update (name, email) | ✅ |
+| Password change functionality | ✅ |
+| Client-side validation | ✅ |
+| Server-side validation | ✅ |
+| Role-based access control | ✅ |
 
 ---
 
 ## 📄 License
 
-This project is for educational purposes as part of the CSE 340 course.
+This project is for educational purposes as part of the CSE 340 course at BYU-Idaho.
