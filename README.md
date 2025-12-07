@@ -72,25 +72,25 @@ http://localhost:5500
 
 ---
 
-## 🔐 Test Accounts
+## 🔐 Testing the Application
 
-Use these pre-configured accounts to test the application:
-
-| Email | Password | Role | Permissions |
-|-------|----------|------|-------------|
-| `admin@cse340.edu` | `Admin123!@#$` | Admin | Full access (add vehicles/classifications) |
-| `employee@cse340.edu` | `Employee123!@#$` | Employee | Can add vehicles/classifications |
-| `client@cse340.edu` | `Client123!@#$` | Client | View only |
+### How to Test
+1. Go to the **Register** page (`/account/register`)
+2. Create a new account with a valid password
+3. Login with your new account
+4. Access the Account Management dashboard
 
 ### Password Requirements
-When creating or changing passwords:
+When creating an account, your password must have:
 - ✅ Minimum 12 characters
 - ✅ At least 1 uppercase letter (A-Z)
 - ✅ At least 1 lowercase letter (a-z)
 - ✅ At least 1 number (0-9)
 - ✅ At least 1 special character (!@#$%^&*)
 
-**Example:** `MyP@ssw0rd123!`
+**Example valid password:** `MyP@ssw0rd123!`
+
+> **Note:** New accounts are created as "Client" type by default.
 
 ---
 
