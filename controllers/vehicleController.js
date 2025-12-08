@@ -153,6 +153,7 @@ invCont.buildByVehicleId = async function (req, res, next) {
     title: vehicleName,
     nav,
     detail,
+    inv_id,
   })
 }
 
