@@ -2,6 +2,7 @@
 const express = require("express")
 const router = new express.Router()
 const invController = require("../controllers/vehicleController")
+const reviewController = require("../controllers/reviewController")
 const utilities = require("../utilities/")
 const regValidate = require('../utilities/inventory-validation')
 
@@ -64,5 +65,35 @@ router.get("/type/:classificationId", utilities.handleErrors(invController.build
 
 // Route to build vehicle detail view (PÚBLICA)
 router.get("/detail/:vehicleId", utilities.handleErrors(invController.buildByVehicleId))
+
+// ==========================================
+// ROTAS DE AVALIAÇÕES (Reviews)
+// ==========================================
+// Avaliações podem ser vistas por todos (pública)
+// Mas adicionar/editar/deletar requer login (protegida)
+
+// Route to get all reviews for a vehicle (PÚBLICA - API)
+router.get("/review/:inv_id", utilities.handleErrors(reviewController.getReviews))
+
+// Route to add a new review (PROTEGIDA - Requer login)
+router.post(
+  "/review/add",
+  authMiddleware.checkLogin,
+  utilities.handleErrors(reviewController.addReview)
+)
+
+// Route to update a review (PROTEGIDA - Apenas autor)
+router.put(
+  "/review/update/:review_id",
+  authMiddleware.checkLogin,
+  utilities.handleErrors(reviewController.updateReview)
+)
+
+// Route to delete a review (PROTEGIDA - Apenas autor ou admin)
+router.delete(
+  "/review/delete/:review_id",
+  authMiddleware.checkLogin,
+  utilities.handleErrors(reviewController.deleteReview)
+)
 
 module.exports = router
