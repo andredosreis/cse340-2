@@ -5,3 +5,260 @@
 
 <%# Display the vehicle details built in the controller %>
 <%- detail %>
+
+<!-- ======================================== -->
+<!-- REVIEWS SECTION -->
+<!-- ======================================== -->
+<div class="mt-12 max-w-4xl mx-auto">
+  
+  <!-- Reviews Header -->
+  <div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-6 rounded-t-lg shadow-lg">
+    <h2 class="text-2xl font-bold">Customer Reviews</h2>
+    <p class="mt-2 text-blue-100">Read what others think about this vehicle</p>
+  </div>
+
+  <!-- Reviews Container -->
+  <div class="bg-white p-6 shadow-lg border-b border-gray-200" id="reviewsContainer">
+    <p class="text-gray-500 text-center py-8">Loading reviews...</p>
+  </div>
+
+  <!-- Add Review Form (Only for logged-in users) -->
+  <% if (typeof accountData !== 'undefined' && accountData) { %>
+    <div class="bg-blue-50 p-6 shadow-lg border-t-4 border-blue-600 rounded-b-lg">
+      <h3 class="text-xl font-bold text-gray-800 mb-4">Share Your Review</h3>
+      
+      <form id="reviewForm" class="space-y-4">
+        <!-- Hidden input for inv_id -->
+        <input type="hidden" id="inv_id" value="<%= inv_id || '' %>" />
+        
+        <!-- Review Text -->
+        <div>
+          <label for="review_text" class="block text-sm font-semibold text-gray-700 mb-2">
+            Your Review <span class="text-red-500">*</span>
+          </label>
+          <textarea
+            id="review_text"
+            name="review_text"
+            rows="4"
+            placeholder="Share your experience with this vehicle..."
+            class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-600 resize-none"
+            minlength="10"
+            maxlength="1000"
+            required
+          ></textarea>
+          <p class="text-xs text-gray-500 mt-1">10-1000 characters</p>
+        </div>
+
+        <!-- Rating Stars -->
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-2">
+            Rating <span class="text-red-500">*</span>
+          </label>
+          <div class="flex items-center gap-2">
+            <% for (let i = 1; i <= 5; i++) { %>
+              <label class="flex items-center cursor-pointer">
+                <input
+                  type="radio"
+                  name="review_rating"
+                  value="<%= i %>"
+                  class="hidden"
+                  required
+                />
+                <svg class="w-8 h-8 text-gray-300 hover:text-yellow-400 transition" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
+                </svg>
+              </label>
+            <% } %>
+          </div>
+          <p id="ratingValue" class="text-sm text-gray-600 mt-2">Please select a rating</p>
+        </div>
+
+        <!-- Submit Button -->
+        <button
+          type="submit"
+          class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition"
+        >
+          Submit Review
+        </button>
+        <p id="formMessage" class="text-center text-sm hidden"></p>
+      </form>
+    </div>
+  <% } else { %>
+    <!-- Login prompt for non-logged-in users -->
+    <div class="bg-gray-50 p-6 shadow-lg border-t-4 border-gray-300 rounded-b-lg text-center">
+      <p class="text-gray-700 mb-3">Want to share your experience with this vehicle?</p>
+      <a href="/account/login" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition inline-block">
+        Log in to Review
+      </a>
+    </div>
+  <% } %>
+
+</div>
+
+<!-- JavaScript for Reviews -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const inv_id = document.getElementById('inv_id').value;
+  
+  // Load reviews when page loads
+  if (inv_id) {
+    loadReviews(inv_id);
+  }
+
+  // Rating stars functionality
+  const ratingInputs = document.querySelectorAll('input[name="review_rating"]');
+  const ratingValue = document.getElementById('ratingValue');
+  const stars = document.querySelectorAll('svg');
+
+  ratingInputs.forEach((input, index) => {
+    input.addEventListener('change', function() {
+      ratingValue.textContent = `Rating: ${this.value} / 5 stars`;
+      
+      // Update star colors
+      stars.forEach((star, starIndex) => {
+        if (starIndex < index + 1) {
+          star.classList.remove('text-gray-300');
+          star.classList.add('text-yellow-400');
+        } else {
+          star.classList.remove('text-yellow-400');
+          star.classList.add('text-gray-300');
+        }
+      });
+    });
+
+    // Hover effect
+    input.closest('label').addEventListener('mouseover', function() {
+      stars.forEach((star, starIndex) => {
+        if (starIndex < index + 1) {
+          star.classList.add('text-yellow-300');
+        }
+      });
+    });
+  });
+
+  document.addEventListener('mouseout', function(e) {
+    if (!e.target.closest('input[name="review_rating"]')) {
+      const selectedRating = document.querySelector('input[name="review_rating"]:checked');
+      stars.forEach((star, starIndex) => {
+        if (selectedRating && starIndex < selectedRating.value) {
+          star.classList.add('text-yellow-400');
+        } else {
+          star.classList.remove('text-yellow-400');
+          star.classList.add('text-gray-300');
+        }
+      });
+    }
+  });
+
+  // Form submission
+  const reviewForm = document.getElementById('reviewForm');
+  if (reviewForm) {
+    reviewForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const review_text = document.getElementById('review_text').value;
+      const review_rating = document.querySelector('input[name="review_rating"]:checked').value;
+      const formMessage = document.getElementById('formMessage');
+
+      try {
+        const response = await fetch('/inv/review/add', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            inv_id,
+            review_text,
+            review_rating
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          formMessage.textContent = '✅ Review added successfully!';
+          formMessage.className = 'text-center text-sm text-green-600';
+          reviewForm.reset();
+          ratingValue.textContent = 'Please select a rating';
+          loadReviews(inv_id);
+        } else {
+          formMessage.textContent = '❌ ' + data.message;
+          formMessage.className = 'text-center text-sm text-red-600';
+        }
+        formMessage.classList.remove('hidden');
+      } catch (error) {
+        console.error('Error:', error);
+        formMessage.textContent = '❌ An error occurred. Please try again.';
+        formMessage.className = 'text-center text-sm text-red-600';
+        formMessage.classList.remove('hidden');
+      }
+    });
+  }
+});
+
+// Load and display reviews
+async function loadReviews(inv_id) {
+  try {
+    const response = await fetch(`/inv/review/${inv_id}`);
+    const data = await response.json();
+
+    const container = document.getElementById('reviewsContainer');
+    const reviews = data.reviews || [];
+    const stats = data.stats || {};
+
+    let html = '';
+
+    // Display stats
+    if (stats.total_reviews > 0) {
+      html += `
+        <div class="mb-6 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-600">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm text-gray-600">Average Rating</p>
+              <p class="text-2xl font-bold text-blue-600">${stats.average_rating} / 5</p>
+            </div>
+            <div>
+              <p class="text-sm text-gray-600">Total Reviews</p>
+              <p class="text-2xl font-bold text-blue-600">${stats.total_reviews}</p>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    if (reviews.length === 0) {
+      html += '<p class="text-gray-500 text-center py-8">No reviews yet. Be the first to review!</p>';
+    } else {
+      html += '<div class="space-y-4">';
+      reviews.forEach(review => {
+        const date = new Date(review.review_date).toLocaleDateString('en-US', { 
+          year: 'numeric', 
+          month: 'short', 
+          day: 'numeric' 
+        });
+        
+        html += `
+          <div class="border border-gray-200 rounded-lg p-4 bg-gray-50">
+            <div class="flex items-start justify-between">
+              <div class="flex-1">
+                <div class="flex items-center gap-2 mb-2">
+                  <p class="font-semibold text-gray-800">${review.account_firstname} ${review.account_lastname}</p>
+                  <span class="text-yellow-400">${'★'.repeat(review.review_rating)}${'☆'.repeat(5 - review.review_rating)}</span>
+                </div>
+                <p class="text-sm text-gray-500 mb-2">${date}</p>
+                <p class="text-gray-700">${review.review_text}</p>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+      html += '</div>';
+    }
+
+    container.innerHTML = html;
+  } catch (error) {
+    console.error('Error loading reviews:', error);
+    document.getElementById('reviewsContainer').innerHTML = '<p class="text-red-500 text-center">Error loading reviews</p>';
+  }
+}
+</script>

@@ -44,9 +44,9 @@ reviewCont.addReview = async function (req, res) {
 
     // PASSO 1: Verificar se usuário está logado
     // accountData vem do middleware
-    const accountData = res.locals.accountData || req.session.accountData
+    const accountData = res.locals.accountData
 
-    if (!accountData) {
+    if (!accountData || !accountData.account_id) {
       return res.status(401).json({
         success: false,
         message: "Please log in to add a review."

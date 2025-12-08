@@ -5,6 +5,7 @@ const invController = require("../controllers/vehicleController")
 const reviewController = require("../controllers/reviewController")
 const utilities = require("../utilities/")
 const regValidate = require('../utilities/inventory-validation')
+const reviewValidate = require('../utilities/review-validation')
 
 // Import authentication middleware
 const authMiddleware = require("../middleware/authMiddleware")
@@ -79,6 +80,8 @@ router.get("/review/:inv_id", utilities.handleErrors(reviewController.getReviews
 router.post(
   "/review/add",
   authMiddleware.checkLogin,
+  reviewValidate.reviewRules(),
+  reviewValidate.checkReviewData,
   utilities.handleErrors(reviewController.addReview)
 )
 
@@ -86,6 +89,8 @@ router.post(
 router.put(
   "/review/update/:review_id",
   authMiddleware.checkLogin,
+  reviewValidate.reviewRules(),
+  reviewValidate.checkReviewData,
   utilities.handleErrors(reviewController.updateReview)
 )
 
