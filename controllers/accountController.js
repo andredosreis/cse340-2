@@ -14,6 +14,9 @@
 // Importar Account Model (acessa banco de dados)
 const accountModel = require("../models/account-model")
 
+// Importar Review Model (para gerenciar reviews do usuário)
+const reviewModel = require("../models/review-model")
+
 // Importar Utilities (funções auxiliares como getNav)
 const utilities = require("../utilities/")
 
@@ -349,6 +352,10 @@ accountCont.accountLogout = function (req, res) {
  */
 accountCont.buildAccountManagement = async function (req, res, next) {
   let nav = await utilities.getNav()
+  const accountData = res.locals.accountData
+
+  // Buscar reviews do usuário logado
+  const reviews = await reviewModel.getReviewsByAccountId(accountData.account_id)
 
   // Renderizar dashboard
   // accountData vem de res.locals (definido no middleware)
@@ -356,6 +363,7 @@ accountCont.buildAccountManagement = async function (req, res, next) {
     title: "Account Management",
     nav,
     errors: null,
+    reviews: reviews
   })
 }
 
@@ -501,6 +509,108 @@ accountCont.updatePassword = async function (req, res) {
       account_id,
     })
   }
+}
+
+/* ***************************
+ *  FUNÇÃO: Exibir formulário de edição de review
+ * ***************************
+ *
+ * ROTA: GET /account/review/edit/:review_id
+ *
+ * OBJETIVO: Renderizar formulário para editar review do usuário
+ */
+accountCont.buildEditReview = async function (req, res, next) {
+  const review_id = parseInt(req.params.review_id)
+  const accountData = res.locals.accountData
+  
+  let nav = await utilities.getNav()
+  const review = await reviewModel.getReviewById(review_id)
+  
+  // Verificar se review existe
+  if (!review) {
+    req.flash("notice", "Review not found.")
+    return res.redirect("/account/")
+  }
+  
+  // Verificar se é o autor
+  if (review.account_id !== accountData.account_id) {
+    req.flash("notice", "You can only edit your own reviews.")
+    return res.redirect("/account/")
+  }
+  
+  res.render("account/edit-review", {
+    title: "Edit Review",
+    nav,
+    errors: null,
+    review_id: review.review_id,
+    review_text: review.review_text,
+    review_date: review.review_date,
+    inv_name: `${review.inv_year || ''} ${review.inv_make || ''} ${review.inv_model || ''}`
+  })
+}
+
+/* ***************************
+ *  FUNÇÃO: Processar atualização de review
+ * ***************************
+ *
+ * ROTA: POST /account/review/update
+ *
+ * OBJETIVO: Atualizar review do usuário no banco
+ */
+accountCont.processUpdateReview = async function (req, res, next) {
+  const { review_id, review_text } = req.body
+  const accountData = res.locals.accountData
+  
+  let nav = await utilities.getNav()
+  const review = await reviewModel.getReviewById(review_id)
+  
+  // Verificar se review existe e é do autor
+  if (!review || review.account_id !== accountData.account_id) {
+    req.flash("notice", "You can only edit your own reviews.")
+    return res.redirect("/account/")
+  }
+  
+  // Atualizar review (manter rating original)
+  const result = await reviewModel.updateReview(review_id, review_text, review.review_rating)
+  
+  if (result && result.rows && result.rows.length > 0) {
+    req.flash("notice", "Review updated successfully!")
+  } else {
+    req.flash("notice", "Failed to update review.")
+  }
+  
+  res.redirect("/account/")
+}
+
+/* ***************************
+ *  FUNÇÃO: Processar exclusão de review
+ * ***************************
+ *
+ * ROTA: POST /account/review/delete/:review_id
+ *
+ * OBJETIVO: Deletar review do usuário
+ */
+accountCont.processDeleteReview = async function (req, res, next) {
+  const review_id = parseInt(req.params.review_id)
+  const accountData = res.locals.accountData
+  
+  const review = await reviewModel.getReviewById(review_id)
+  
+  // Verificar se review existe e é do autor
+  if (!review || review.account_id !== accountData.account_id) {
+    req.flash("notice", "You can only delete your own reviews.")
+    return res.redirect("/account/")
+  }
+  
+  const result = await reviewModel.deleteReview(review_id)
+  
+  if (result && result.rows && result.rows.length > 0) {
+    req.flash("notice", "Review deleted successfully!")
+  } else {
+    req.flash("notice", "Failed to delete review.")
+  }
+  
+  res.redirect("/account/")
 }
 
 // ==============================================

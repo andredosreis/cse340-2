@@ -276,6 +276,50 @@ async function getReviewStats(inv_id) {
   }
 }
 
+/* ***************************
+ *  FUNÇÃO 8: Obter reviews por account_id
+ * ***************************
+ *
+ * OBJETIVO: Buscar todas as reviews de um usuário específico
+ *
+ * PARÂMETROS:
+ * - account_id: ID do usuário
+ *
+ * PROCESSO:
+ * 1. Buscar todas as reviews onde account_id = valor fornecido
+ * 2. Fazer JOIN com tabela inventory para pegar dados do veículo
+ * 3. Ordenar por data mais recente
+ *
+ * RETORNO:
+ * - Sucesso: array com reviews e dados do veículo
+ * - Erro: array vazio
+ */
+async function getReviewsByAccountId(account_id) {
+  try {
+    const sql = `
+      SELECT 
+        r.review_id,
+        r.review_text,
+        r.review_rating,
+        r.review_date,
+        r.inv_id,
+        i.inv_make,
+        i.inv_model,
+        i.inv_year
+      FROM cse340.review r
+      INNER JOIN cse340.inventory i ON r.inv_id = i.inv_id
+      WHERE r.account_id = $1
+      ORDER BY r.review_date DESC
+    `
+
+    const result = await pool.query(sql, [account_id])
+    return result.rows
+  } catch (error) {
+    console.error("getReviewsByAccountId error: " + error)
+    return []
+  }
+}
+
 // ==============================================
 // EXPORTAR FUNÇÕES
 // ==============================================
@@ -287,5 +331,6 @@ module.exports = {
   updateReview,
   deleteReview,
   hasUserReviewedVehicle,
-  getReviewStats
+  getReviewStats,
+  getReviewsByAccountId
 }

@@ -252,6 +252,57 @@ router.post(
   utilities.handleErrors(accountController.updatePassword)
 )
 
+// ==========================================
+// ROTAS DE REVIEWS DO USUÁRIO
+// ==========================================
+
+/* ***************************
+ *  ROTA 11: Exibir formulário de edição de review
+ * ***************************
+ *
+ * MÉTODO: GET
+ * URL: /account/review/edit/:review_id
+ * MIDDLEWARE: checkLogin (usuário deve estar logado)
+ * CONTROLLER: buildEditReview
+ */
+router.get(
+  "/review/edit/:review_id",
+  authMiddleware.checkLogin,
+  utilities.handleErrors(accountController.buildEditReview)
+)
+
+/* ***************************
+ *  ROTA 12: Processar atualização de review
+ * ***************************
+ *
+ * MÉTODO: POST
+ * URL: /account/review/update
+ * MIDDLEWARE: checkLogin, validação
+ * CONTROLLER: processUpdateReview
+ */
+router.post(
+  "/review/update",
+  authMiddleware.checkLogin,
+  regValidate.reviewUpdateRules(),
+  regValidate.checkReviewUpdateData,
+  utilities.handleErrors(accountController.processUpdateReview)
+)
+
+/* ***************************
+ *  ROTA 13: Processar exclusão de review
+ * ***************************
+ *
+ * MÉTODO: POST
+ * URL: /account/review/delete/:review_id
+ * MIDDLEWARE: checkLogin
+ * CONTROLLER: processDeleteReview
+ */
+router.post(
+  "/review/delete/:review_id",
+  authMiddleware.checkLogin,
+  utilities.handleErrors(accountController.processDeleteReview)
+)
+
 // ==============================================
 // EXPORTAR ROUTER
 // ==============================================

@@ -165,21 +165,21 @@ reviewCont.updateReview = async function (req, res) {
       })
     }
 
-    // PASSO 2: Verificar se é Admin
-    if (accountData.account_type !== 'Admin') {
-      return res.status(403).json({
-        success: false,
-        message: "Only administrators can edit reviews."
-      })
-    }
-
-    // PASSO 3: Buscar avaliação original
+    // PASSO 2: Buscar avaliação original
     const review = await reviewModel.getReviewById(review_id)
 
     if (!review) {
       return res.status(404).json({
         success: false,
         message: "Review not found."
+      })
+    }
+
+    // PASSO 3: Verificar se é autor OU admin
+    if (accountData.account_id !== review.account_id && accountData.account_type !== 'Admin') {
+      return res.status(403).json({
+        success: false,
+        message: "You can only edit your own reviews."
       })
     }
 
@@ -235,21 +235,21 @@ reviewCont.deleteReview = async function (req, res) {
       })
     }
 
-    // PASSO 2: Verificar se é Admin
-    if (accountData.account_type !== 'Admin') {
-      return res.status(403).json({
-        success: false,
-        message: "Only administrators can delete reviews."
-      })
-    }
-
-    // PASSO 3: Buscar avaliação original
+    // PASSO 2: Buscar avaliação original
     const review = await reviewModel.getReviewById(review_id)
 
     if (!review) {
       return res.status(404).json({
         success: false,
         message: "Review not found."
+      })
+    }
+
+    // PASSO 3: Verificar se é autor OU admin
+    if (accountData.account_id !== review.account_id && accountData.account_type !== 'Admin') {
+      return res.status(403).json({
+        success: false,
+        message: "You can only delete your own reviews."
       })
     }
 
