@@ -1,0 +1,164 @@
+<%# ============================================== %>
+<%# EDIT REVIEW VIEW %>
+<%# ============================================== %>
+<%# Esta view permite ao usuário editar sua própria review %>
+<%# URL: /account/review/edit/:review_id (protegida - requer login) %>
+<%# ============================================== %>
+
+<div class="max-w-2xl mx-auto mt-10">
+  
+  <%# Cabeçalho %>
+  <div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-6 rounded-t-lg shadow-lg">
+    <h1 class="text-2xl font-bold"><%= title %></h1>
+    <p class="mt-2 text-blue-100">Update your review for <%= inv_name %></p>
+  </div>
+
+  <%# Mensagens de erro (validação server-side) %>
+  <% if (errors) { %>
+    <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 my-4 rounded">
+      <p class="font-bold mb-2">Please correct the following errors:</p>
+      <ul class="list-disc pl-5">
+        <% errors.forEach(error => { %>
+          <li><%= error.msg %></li>
+        <% }) %>
+      </ul>
+    </div>
+  <% } %>
+
+  <%# Formulário de edição %>
+  <div class="bg-white p-6 shadow-lg rounded-b-lg border">
+    
+    <%# Informação da review original %>
+    <div class="bg-blue-50 border-l-4 border-blue-600 p-4 mb-6 rounded">
+      <p class="text-sm text-gray-700">
+        <span class="font-semibold">Original review date:</span> 
+        <%= new Date(review_date).toLocaleDateString('en-US', { 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        }) %>
+      </p>
+      <p class="text-xs text-gray-500 mt-1">
+        You can only edit the review text. The rating will remain the same.
+      </p>
+    </div>
+    
+    <form action="/account/review/update" method="POST" class="space-y-6">
+      
+      <%# Hidden review_id %>
+      <input type="hidden" name="review_id" value="<%= review_id %>">
+      
+      <%# Review Text (editável) %>
+      <div>
+        <label for="review_text" class="block text-sm font-semibold text-gray-700 mb-2">
+          Review Text <span class="text-red-500">*</span>
+        </label>
+        <textarea
+          id="review_text"
+          name="review_text"
+          rows="8"
+          class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200 resize-none transition"
+          minlength="10"
+          maxlength="1000"
+          required
+        ><%= review_text %></textarea>
+        <div class="flex justify-between items-center mt-2">
+          <p class="text-xs text-gray-500">10-1000 characters required</p>
+          <p id="charCount" class="text-xs text-gray-500">
+            <span id="currentCount"><%= review_text ? review_text.length : 0 %></span> / 1000
+          </p>
+        </div>
+      </div>
+
+      <%# Botões de ação %>
+      <div class="flex flex-col sm:flex-row gap-3">
+        <button
+          type="submit"
+          class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+        >
+          <svg class="inline-block w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+          </svg>
+          Update Review
+        </button>
+        <a
+          href="/account/"
+          class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-3 px-6 rounded-lg transition shadow-md hover:shadow-lg text-center transform hover:-translate-y-0.5"
+        >
+          <svg class="inline-block w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+          Cancel
+        </a>
+      </div>
+      
+    </form>
+  </div>
+
+  <%# Dica útil %>
+  <div class="mt-6 bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
+    <div class="flex">
+      <div class="flex-shrink-0">
+        <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+        </svg>
+      </div>
+      <div class="ml-3">
+        <p class="text-sm text-yellow-700">
+          <strong>Tip:</strong> Make sure your review is constructive and helpful for other customers. 
+          Avoid using offensive language or personal information.
+        </p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<%# JavaScript para contador de caracteres %>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const textarea = document.getElementById('review_text');
+  const currentCount = document.getElementById('currentCount');
+  const charCount = document.getElementById('charCount');
+  
+  // Atualizar contador em tempo real
+  textarea.addEventListener('input', function() {
+    const length = this.value.length;
+    currentCount.textContent = length;
+    
+    // Mudar cor baseado no comprimento
+    if (length < 10) {
+      charCount.classList.remove('text-green-600', 'text-gray-500');
+      charCount.classList.add('text-red-600');
+    } else if (length > 900) {
+      charCount.classList.remove('text-red-600', 'text-gray-500');
+      charCount.classList.add('text-yellow-600');
+    } else {
+      charCount.classList.remove('text-red-600', 'text-yellow-600');
+      charCount.classList.add('text-green-600');
+    }
+  });
+  
+  // Validação client-side antes do submit
+  const form = document.querySelector('form');
+  form.addEventListener('submit', function(e) {
+    const text = textarea.value.trim();
+    
+    if (text.length < 10) {
+      e.preventDefault();
+      alert('Review text must be at least 10 characters long.');
+      textarea.focus();
+      return false;
+    }
+    
+    if (text.length > 1000) {
+      e.preventDefault();
+      alert('Review text must not exceed 1000 characters.');
+      textarea.focus();
+      return false;
+    }
+  });
+});
+</script>

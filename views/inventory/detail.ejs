@@ -240,12 +240,15 @@ async function loadReviews(inv_id) {
         // Check if current user is Admin
         const isAdmin = document.querySelector('body').dataset.userType === 'Admin';
         
+        // Create screen name: First initial + Last name (e.g., "BClient")
+        const screenName = review.account_firstname.charAt(0) + review.account_lastname;
+        
         html += `
           <div class="border border-gray-200 rounded-lg p-4 bg-gray-50">
             <div class="flex items-start justify-between">
               <div class="flex-1">
                 <div class="flex items-center gap-2 mb-2">
-                  <p class="font-semibold text-gray-800">${review.account_firstname} ${review.account_lastname}</p>
+                  <p class="font-semibold text-gray-800">${screenName}</p>
                   <span class="text-yellow-400">${'★'.repeat(review.review_rating)}${'☆'.repeat(5 - review.review_rating)}</span>
                 </div>
                 <p class="text-sm text-gray-500 mb-2">${date}</p>

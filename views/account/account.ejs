@@ -133,9 +133,114 @@
   </div>
 
   <%# ========================================== %>
+  <%# MINHAS REVIEWS %>
+  <%# ========================================== %>
+  <div class="mt-8">
+    <div class="flex items-center mb-4">
+      <svg class="w-6 h-6 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
+      </svg>
+      <h3 class="text-xl font-semibold text-gray-800">My Reviews</h3>
+    </div>
+    
+    <% if (typeof reviews !== 'undefined' && reviews && reviews.length > 0) { %>
+      <div class="space-y-4">
+        <% reviews.forEach(review => { %>
+          <div class="bg-white p-5 rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition">
+            <div class="flex justify-between items-start">
+              <div class="flex-1">
+                <%# Nome do veículo %>
+                <div class="flex items-center mb-2">
+                  <svg class="w-5 h-5 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                  </svg>
+                  <a href="/inv/detail/<%= review.inv_id %>" class="font-semibold text-gray-800 hover:text-blue-600 transition">
+                    <%= review.inv_year %> <%= review.inv_make %> <%= review.inv_model %>
+                  </a>
+                </div>
+                
+                <%# Data e Rating %>
+                <div class="flex items-center text-sm text-gray-500 mb-3">
+                  <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                  </svg>
+                  <%= new Date(review.review_date).toLocaleDateString('en-US', { 
+                    year: 'numeric', 
+                    month: 'short', 
+                    day: 'numeric' 
+                  }) %>
+                  <span class="text-yellow-500 ml-3 font-medium">
+                    <%= '★'.repeat(review.review_rating) %><%= '☆'.repeat(5 - review.review_rating) %>
+                    (<%= review.review_rating %>/5)
+                  </span>
+                </div>
+                
+                <%# Texto da review (truncado) %>
+                <p class="text-gray-700 text-sm line-clamp-2 leading-relaxed"><%= review.review_text %></p>
+              </div>
+              
+              <%# Botões de ação %>
+              <div class="flex flex-col gap-2 ml-4">
+                <a
+                  href="/account/review/edit/<%= review.review_id %>"
+                  class="px-4 py-2 text-sm bg-blue-500 hover:bg-blue-600 text-white rounded transition shadow-sm hover:shadow flex items-center justify-center"
+                  title="Edit this review"
+                >
+                  <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                  </svg>
+                  Edit
+                </a>
+                <form action="/account/review/delete/<%= review.review_id %>" method="POST" class="inline" onsubmit="return confirm('Are you sure you want to delete this review? This action cannot be undone.');">
+                  <button
+                    type="submit"
+                    class="w-full px-4 py-2 text-sm bg-red-500 hover:bg-red-600 text-white rounded transition shadow-sm hover:shadow flex items-center justify-center"
+                    title="Delete this review"
+                  >
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                    Delete
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+      
+      <%# Estatísticas das reviews %>
+      <div class="mt-4 bg-blue-50 border-l-4 border-blue-600 p-4 rounded">
+        <p class="text-sm text-blue-800">
+          <svg class="inline-block w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"></path>
+            <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"></path>
+          </svg>
+          <strong>You have written <%= reviews.length %> review<%= reviews.length !== 1 ? 's' : '' %>.</strong> 
+          Thank you for sharing your experience!
+        </p>
+      </div>
+    <% } else { %>
+      <div class="bg-gray-50 p-8 rounded-lg border-2 border-dashed border-gray-300 text-center">
+        <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
+        </svg>
+        <p class="text-gray-500 mb-3 text-lg">You haven't written any reviews yet.</p>
+        <p class="text-gray-400 text-sm mb-4">Share your experience and help other customers make informed decisions!</p>
+        <a 
+          href="/" 
+          class="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition shadow-md hover:shadow-lg"
+        >
+          Browse Vehicles
+        </a>
+      </div>
+    <% } %>
+  </div>
+
+  <%# ========================================== %>
   <%# INFORMAÇÕES ADICIONAIS %>
   <%# ========================================== %>
-  <div class="bg-gray-50 p-6 rounded-lg border border-gray-200">
+  <div class="mt-8 bg-gray-50 p-6 rounded-lg border border-gray-200">
     <h3 class="text-lg font-semibold text-gray-800 mb-3">Need Help?</h3>
     <p class="text-gray-600 mb-3">
       If you have any questions or need assistance, feel free to contact our support team.
