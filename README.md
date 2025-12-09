@@ -88,9 +88,7 @@ When creating an account, your password must have:
 - ✅ At least 1 number (0-9)
 - ✅ At least 1 special character (!@#$%^&*)
 
-**Example valid password:** `MyP@ssw0rd123!`
 
-> **Note:** New accounts are created as "Client" type by default.
 
 ---
 
