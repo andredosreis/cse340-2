@@ -1,0 +1,338 @@
+<%# ============================================== %>
+<%# REVIEW MANAGEMENT VIEW (ADMIN ONLY) %>
+<%# ============================================== %>
+<%# Página para gerenciar todas as avaliações %>
+<%# URL: /inv/review-management (protegida - Admin only) %>
+<%# ============================================== %>
+
+<div class="max-w-6xl mx-auto">
+  <!-- Header -->
+  <div class="bg-gradient-to-r from-purple-600 to-purple-800 text-white p-6 rounded-lg shadow-lg mb-6">
+    <h1 class="text-3xl font-bold">Review Management</h1>
+    <p class="mt-2 text-purple-100">View, edit, and delete customer reviews</p>
+  </div>
+
+  <!-- Controls -->
+  <div class="bg-white p-4 rounded-lg shadow mb-6 flex gap-4">
+    <input
+      type="text"
+      id="searchInput"
+      placeholder="Search by vehicle or customer..."
+      class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+    />
+    <select
+      id="filterRating"
+      class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+    >
+      <option value="">All Ratings</option>
+      <option value="5">5 Stars</option>
+      <option value="4">4 Stars</option>
+      <option value="3">3 Stars</option>
+      <option value="2">2 Stars</option>
+      <option value="1">1 Star</option>
+    </select>
+    <button
+      onclick="loadAllReviews()"
+      class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition"
+    >
+      Refresh
+    </button>
+  </div>
+
+  <!-- Reviews Table -->
+  <div class="bg-white rounded-lg shadow overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead class="bg-gray-100 border-b-2 border-gray-300">
+          <tr>
+            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Vehicle</th>
+            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Customer</th>
+            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Review</th>
+            <th class="px-6 py-3 text-center text-sm font-semibold text-gray-700">Rating</th>
+            <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Date</th>
+            <th class="px-6 py-3 text-center text-sm font-semibold text-gray-700">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="reviewsTableBody">
+          <tr>
+            <td colspan="6" class="px-6 py-8 text-center text-gray-500">
+              Loading reviews...
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- No Results Message -->
+  <div id="noResultsMessage" class="hidden bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-lg mt-6">
+    <p class="text-yellow-800">No reviews found matching your criteria.</p>
+  </div>
+</div>
+
+<!-- Edit Modal -->
+<div id="editModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+  <div class="bg-white rounded-lg shadow-lg p-6 max-w-md w-full">
+    <h2 class="text-xl font-bold mb-4">Edit Review</h2>
+    
+    <form id="editForm" class="space-y-4">
+      <input type="hidden" id="editReviewId" />
+      
+      <div>
+        <label for="editText" class="block text-sm font-semibold text-gray-700 mb-1">
+          Review Text
+        </label>
+        <textarea
+          id="editText"
+          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 resize-none"
+          rows="4"
+          minlength="10"
+          maxlength="1000"
+          required
+        ></textarea>
+      </div>
+
+      <div>
+        <label for="editRating" class="block text-sm font-semibold text-gray-700 mb-1">
+          Rating
+        </label>
+        <select id="editRating" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500" required>
+          <option value="">Select rating</option>
+          <option value="1">1 Star</option>
+          <option value="2">2 Stars</option>
+          <option value="3">3 Stars</option>
+          <option value="4">4 Stars</option>
+          <option value="5">5 Stars</option>
+        </select>
+      </div>
+
+      <div class="flex gap-3">
+        <button
+          type="submit"
+          class="flex-1 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition"
+        >
+          Save Changes
+        </button>
+        <button
+          type="button"
+          onclick="closeEditModal()"
+          class="flex-1 px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg transition"
+        >
+          Cancel
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+// Load all reviews on page load
+document.addEventListener('DOMContentLoaded', function() {
+  loadAllReviews();
+
+  // Setup search and filter listeners
+  document.getElementById('searchInput').addEventListener('input', filterReviews);
+  document.getElementById('filterRating').addEventListener('change', filterReviews);
+
+  // Setup edit form submission
+  document.getElementById('editForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    await saveReviewChanges();
+  });
+});
+
+let allReviews = [];
+
+// Load all reviews from all vehicles
+async function loadAllReviews() {
+  try {
+    // Get all vehicles first
+    const response = await fetch('/api/vehicles');
+    
+    if (!response.ok) {
+      throw new Error('Failed to load vehicles');
+    }
+
+    const vehicles = await response.json();
+    allReviews = [];
+
+    // Load reviews for each vehicle
+    for (const vehicle of vehicles) {
+      const reviewResponse = await fetch(`/inv/review/${vehicle.inv_id}`);
+      if (reviewResponse.ok) {
+        const data = await reviewResponse.json();
+        if (data.reviews && data.reviews.length > 0) {
+          data.reviews.forEach(review => {
+            review.vehicle_name = `${vehicle.inv_year} ${vehicle.inv_make} ${vehicle.inv_model}`;
+            allReviews.push(review);
+          });
+        }
+      }
+    }
+
+    displayReviews(allReviews);
+  } catch (error) {
+    console.error('Error loading reviews:', error);
+    document.getElementById('reviewsTableBody').innerHTML = `
+      <tr>
+        <td colspan="6" class="px-6 py-8 text-center text-red-500">
+          Error loading reviews. Please refresh the page.
+        </td>
+      </tr>
+    `;
+  }
+}
+
+// Filter reviews based on search and rating
+function filterReviews() {
+  const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+  const ratingFilter = document.getElementById('filterRating').value;
+
+  let filtered = allReviews.filter(review => {
+    const matchesSearch = 
+      review.vehicle_name.toLowerCase().includes(searchTerm) ||
+      `${review.account_firstname} ${review.account_lastname}`.toLowerCase().includes(searchTerm) ||
+      review.review_text.toLowerCase().includes(searchTerm);
+    
+    const matchesRating = !ratingFilter || review.review_rating == ratingFilter;
+
+    return matchesSearch && matchesRating;
+  });
+
+  displayReviews(filtered);
+}
+
+// Display reviews in table
+function displayReviews(reviews) {
+  const tbody = document.getElementById('reviewsTableBody');
+  const noResults = document.getElementById('noResultsMessage');
+
+  if (reviews.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" class="px-6 py-8 text-center text-gray-500">
+          No reviews found.
+        </td>
+      </tr>
+    `;
+    noResults.classList.remove('hidden');
+    return;
+  }
+
+  noResults.classList.add('hidden');
+
+  tbody.innerHTML = reviews.map(review => {
+    const date = new Date(review.review_date).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+
+    const reviewText = review.review_text.length > 50 
+      ? review.review_text.substring(0, 50) + '...' 
+      : review.review_text;
+
+    return `
+      <tr class="border-b hover:bg-gray-50">
+        <td class="px-6 py-4 text-sm text-gray-900">${review.vehicle_name}</td>
+        <td class="px-6 py-4 text-sm text-gray-900">${review.account_firstname} ${review.account_lastname}</td>
+        <td class="px-6 py-4 text-sm text-gray-700" title="${review.review_text}">${reviewText}</td>
+        <td class="px-6 py-4 text-center">
+          <span class="text-yellow-400">
+            ${'★'.repeat(review.review_rating)}${'☆'.repeat(5 - review.review_rating)}
+          </span>
+        </td>
+        <td class="px-6 py-4 text-sm text-gray-600">${date}</td>
+        <td class="px-6 py-4 text-center">
+          <button
+            onclick="openEditModal(${review.review_id}, '${review.review_text.replace(/'/g, "\\'")}', ${review.review_rating})"
+            class="px-3 py-1 text-sm bg-blue-500 hover:bg-blue-600 text-white rounded mr-2 transition"
+          >
+            Edit
+          </button>
+          <button
+            onclick="deleteReviewFromList(${review.review_id})"
+            class="px-3 py-1 text-sm bg-red-500 hover:bg-red-600 text-white rounded transition"
+          >
+            Delete
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+// Open edit modal
+function openEditModal(reviewId, reviewText, reviewRating) {
+  document.getElementById('editReviewId').value = reviewId;
+  document.getElementById('editText').value = reviewText;
+  document.getElementById('editRating').value = reviewRating;
+  document.getElementById('editModal').classList.remove('hidden');
+}
+
+// Close edit modal
+function closeEditModal() {
+  document.getElementById('editModal').classList.add('hidden');
+}
+
+// Save review changes
+async function saveReviewChanges() {
+  const reviewId = document.getElementById('editReviewId').value;
+  const reviewText = document.getElementById('editText').value;
+  const reviewRating = document.getElementById('editRating').value;
+
+  try {
+    const response = await fetch(`/inv/review/update/${reviewId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        review_text: reviewText,
+        review_rating: parseInt(reviewRating)
+      })
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      alert('Review updated successfully!');
+      closeEditModal();
+      loadAllReviews();
+    } else {
+      alert('Error: ' + data.message);
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    alert('An error occurred while saving changes');
+  }
+}
+
+// Delete review from list
+async function deleteReviewFromList(reviewId) {
+  if (!confirm('Are you sure you want to delete this review?')) {
+    return;
+  }
+
+  try {
+    const response = await fetch(`/inv/review/delete/${reviewId}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      alert('Review deleted successfully!');
+      loadAllReviews();
+    } else {
+      alert('Error: ' + data.message);
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    alert('An error occurred while deleting the review');
+  }
+}
+</script>

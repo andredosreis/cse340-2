@@ -156,30 +156,30 @@ reviewCont.updateReview = async function (req, res) {
     const review_id = req.params.review_id
 
     // PASSO 1: Verificar se usuário está logado
-    const accountData = res.locals.accountData || req.session.accountData
+    const accountData = res.locals.accountData
 
-    if (!accountData) {
+    if (!accountData || !accountData.account_id) {
       return res.status(401).json({
         success: false,
         message: "Please log in to edit a review."
       })
     }
 
-    // PASSO 2: Buscar avaliação original
+    // PASSO 2: Verificar se é Admin
+    if (accountData.account_type !== 'Admin') {
+      return res.status(403).json({
+        success: false,
+        message: "Only administrators can edit reviews."
+      })
+    }
+
+    // PASSO 3: Buscar avaliação original
     const review = await reviewModel.getReviewById(review_id)
 
     if (!review) {
       return res.status(404).json({
         success: false,
         message: "Review not found."
-      })
-    }
-
-    // PASSO 3: Verificar se usuário é o autor
-    if (review.account_id !== accountData.account_id) {
-      return res.status(403).json({
-        success: false,
-        message: "You can only edit your own reviews."
       })
     }
 
@@ -226,33 +226,30 @@ reviewCont.deleteReview = async function (req, res) {
     const review_id = req.params.review_id
 
     // PASSO 1: Verificar se usuário está logado
-    const accountData = res.locals.accountData || req.session.accountData
+    const accountData = res.locals.accountData
 
-    if (!accountData) {
+    if (!accountData || !accountData.account_id) {
       return res.status(401).json({
         success: false,
         message: "Please log in to delete a review."
       })
     }
 
-    // PASSO 2: Buscar avaliação original
+    // PASSO 2: Verificar se é Admin
+    if (accountData.account_type !== 'Admin') {
+      return res.status(403).json({
+        success: false,
+        message: "Only administrators can delete reviews."
+      })
+    }
+
+    // PASSO 3: Buscar avaliação original
     const review = await reviewModel.getReviewById(review_id)
 
     if (!review) {
       return res.status(404).json({
         success: false,
         message: "Review not found."
-      })
-    }
-
-    // PASSO 3: Verificar permissão (autor ou admin)
-    const isAuthor = review.account_id === accountData.account_id
-    const isAdmin = accountData.account_type === 'Admin'
-
-    if (!isAuthor && !isAdmin) {
-      return res.status(403).json({
-        success: false,
-        message: "You do not have permission to delete this review."
       })
     }
 

@@ -16,6 +16,17 @@ invCont.buildManagement = async function (req, res, next) {
 }
 
 /* ***************************
+ *  Build review management view (ADMIN ONLY)
+ * ************************** */
+invCont.buildReviewManagement = async function (req, res, next) {
+  let nav = await utilities.getNav()
+  res.render("./inventory/review-management", {
+    title: "Review Management",
+    nav,
+  })
+}
+
+/* ***************************
  *  Build add classification view
  * ************************** */
 invCont.buildAddClassification = async function (req, res, next) {

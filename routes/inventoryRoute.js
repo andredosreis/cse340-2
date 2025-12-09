@@ -23,6 +23,13 @@ router.get(
     utilities.handleErrors(invController.buildManagement)
 )
 
+// Route to build review management view (PROTEGIDA - ADMIN ONLY)
+router.get(
+    "/review-management",
+    authMiddleware.checkAccountType,
+    utilities.handleErrors(invController.buildReviewManagement)
+)
+
 // Route to build add classification view (PROTEGIDA)
 router.get(
     "/add-classification",
