@@ -8,4 +8,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="/images/site/favicon-32x32.png"/>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="text-gray-900" style="background:url('/images/site/small_check.png') repeat;">
+<body class="text-gray-900" style="background:url('/images/site/small_check.png') repeat;" 
+  data-user-id="<%= typeof accountData !== 'undefined' && accountData ? accountData.account_id : 0 %>" 
+  data-user-type="<%= typeof accountData !== 'undefined' && accountData ? accountData.account_type : '' %>">
+<!-- DEBUG: accountData = <%= typeof accountData !== 'undefined' && accountData ? JSON.stringify(accountData) : 'null' %> -->

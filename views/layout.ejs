@@ -12,7 +12,11 @@
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body class="text-gray-900" style="background:url('/images/site/small_check.png') repeat;" <% if (typeof accountData !== 'undefined' && accountData) { %>data-userType="<%= accountData.account_type %>"<% } %> >
+<body class="text-gray-900" style="background:url('/images/site/small_check.png') repeat;" 
+  <% if (typeof accountData !== 'undefined' && accountData) { %>
+  data-user-id="<%= accountData.account_id %>" 
+  data-user-type="<%= accountData.account_type %>"
+  <% } %> >
 
   <%- include('partials/header.ejs') %>
     <%- body %>

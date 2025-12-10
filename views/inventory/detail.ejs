@@ -237,11 +237,43 @@ async function loadReviews(inv_id) {
           day: 'numeric' 
         });
         
-        // Check if current user is Admin
-        const isAdmin = document.querySelector('body').dataset.userType === 'Admin';
+        // Get current user info from body dataset
+        // Note: data-user-id becomes dataset.userId (camelCase)
+        const bodyElement = document.querySelector('body');
+        const currentUserId = parseInt(bodyElement.dataset.userId || bodyElement.getAttribute('data-user-id') || '0');
+        const currentUserType = bodyElement.dataset.userType || bodyElement.getAttribute('data-user-type') || '';
+        const isAdmin = currentUserType === 'Admin';
+        
+        // Debug (remover depois)
+        console.log('Current User ID:', currentUserId, 'Type:', currentUserType, 'Is Admin:', isAdmin);
+        console.log('Review Author ID:', review.account_id);
+        
+        // Check if current user is the author of this review
+        const isAuthor = currentUserId === review.account_id;
         
         // Create screen name: First initial + Last name (e.g., "BClient")
         const screenName = review.account_firstname.charAt(0) + review.account_lastname;
+        
+        // Show buttons: Author can Edit + Delete, Admin can only Delete (inappropriate content)
+        let buttons = '';
+        if (isAuthor) {
+          buttons = `
+            <div class="flex gap-2 ml-4">
+              <a href="/account/review/edit/${review.review_id}" class="px-3 py-1 text-sm bg-blue-500 hover:bg-blue-600 text-white rounded transition">Edit</a>
+              <form action="/account/review/delete/${review.review_id}" method="POST" onsubmit="return confirm('Are you sure you want to delete this review?')" class="inline">
+                <button type="submit" class="px-3 py-1 text-sm bg-red-500 hover:bg-red-600 text-white rounded transition">Delete</button>
+              </form>
+            </div>
+          `;
+        } else if (isAdmin) {
+          buttons = `
+            <div class="flex gap-2 ml-4">
+              <form action="/account/review/delete/${review.review_id}" method="POST" onsubmit="return confirm('Are you sure you want to delete this review? (Admin moderation)')" class="inline">
+                <button type="submit" class="px-3 py-1 text-sm bg-red-500 hover:bg-red-600 text-white rounded transition">Delete</button>
+              </form>
+            </div>
+          `;
+        }
         
         html += `
           <div class="border border-gray-200 rounded-lg p-4 bg-gray-50">
@@ -254,22 +286,7 @@ async function loadReviews(inv_id) {
                 <p class="text-sm text-gray-500 mb-2">${date}</p>
                 <p class="text-gray-700">${review.review_text}</p>
               </div>
-              ${isAdmin ? `
-                <div class="flex gap-2 ml-4">
-                  <button
-                    onclick="editReview(${review.review_id})"
-                    class="px-3 py-1 text-sm bg-blue-500 hover:bg-blue-600 text-white rounded transition"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onclick="deleteReview(${review.review_id})"
-                    class="px-3 py-1 text-sm bg-red-500 hover:bg-red-600 text-white rounded transition"
-                  >
-                    Delete
-                  </button>
-                </div>
-              ` : ''}
+              ${buttons}
             </div>
           </div>
         `;

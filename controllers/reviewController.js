@@ -175,8 +175,8 @@ reviewCont.updateReview = async function (req, res) {
       })
     }
 
-    // PASSO 3: Verificar se é autor OU admin
-    if (accountData.account_id !== review.account_id && accountData.account_type !== 'Admin') {
+    // PASSO 3: Verificar se é o autor (admin NÃO pode editar reviews de outros)
+    if (accountData.account_id !== review.account_id) {
       return res.status(403).json({
         success: false,
         message: "You can only edit your own reviews."

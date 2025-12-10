@@ -332,6 +332,58 @@ validate.checkPasswordData = async (req, res, next) => {
   next()
 }
 
+/* ******************************
+ * REGRAS DE VALIDAÇÃO: UPDATE REVIEW
+ * ******************************
+ * 
+ * Valida atualização de review (apenas texto)
+ * Conforme rubrica: "Only the review text should be editable"
+ */
+validate.reviewUpdateRules = () => {
+  return [
+    // Validação do texto da review
+    body('review_text')
+      .trim()
+      .notEmpty()
+      .withMessage('Review text is required')
+      .isLength({ min: 8, max: 1000 })
+      .withMessage('Review must be between 8 and 1000 characters'),
+    
+    // Validação do review_id
+    body('review_id')
+      .notEmpty()
+      .withMessage('Review ID is required')
+      .isInt()
+      .withMessage('Invalid review ID')
+  ]
+}
+
+/* ******************************
+ * VERIFICAR DADOS DE UPDATE REVIEW
+ * ******************************
+ */
+validate.checkReviewUpdateData = async (req, res, next) => {
+  const errors = validationResult(req)
+  
+  if (!errors.isEmpty()) {
+    let nav = await utilities.getNav()
+    const { review_id, review_text } = req.body
+    
+    res.render("account/edit-review", {
+      title: "Edit Review",
+      nav,
+      errors: errors.array(),
+      review_id,
+      review_text,
+      review_date: new Date(),
+      inv_name: "Vehicle"
+    })
+    return
+  }
+  
+  next()
+}
+
 // ==============================================
 // EXPORTAR FUNÇÕES
 // ==============================================
