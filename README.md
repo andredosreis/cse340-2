@@ -17,6 +17,13 @@ A full-stack web application for vehicle inventory management, built with Node.j
 - ✅ Vehicle inventory display (by classification and detail view)
 - ✅ Add new vehicles and classifications (Admin/Employee)
 - ✅ Account management (update profile, change password)
+- ✅ **Inventory Review System (Final Project)**
+  - ✅ Customers can add reviews to vehicles
+  - ✅ Star rating system (1-5 stars)
+  - ✅ View all reviews in vehicle detail page
+  - ✅ Edit and delete own reviews
+  - ✅ Admin can delete inappropriate reviews
+  - ✅ Screen name privacy (Initial + Last Name)
 - ✅ Server-side and client-side form validation
 - ✅ Responsive design with Tailwind CSS
 
@@ -125,6 +132,15 @@ When creating an account, your password must have:
 | GET | `/inv/add-inventory` | Add vehicle form |
 | POST | `/inv/add-inventory` | Process new vehicle |
 
+### Review Routes
+| Method | URL | Description |
+|--------|-----|-------------|
+| POST | `/inv/review/add` | Add review to vehicle (requires login) |
+| GET | `/inv/review/:inv_id` | Get all reviews for vehicle |
+| GET | `/account/review/edit/:review_id` | Edit review form (author only) |
+| POST | `/account/review/update` | Process review update (author only) |
+| POST | `/account/review/delete/:review_id` | Delete review (author or admin) |
+
 ---
 
 ## 🏗️ Tech Stack
@@ -150,15 +166,18 @@ When creating an account, your password must have:
 cse340-2/
 ├── controllers/          # Business logic
 │   ├── accountController.js
+│   ├── reviewController.js
 │   └── vehicleController.js
 ├── database/             # SQL scripts and connection
 │   ├── schema.sql
 │   ├── account-schema.sql
+│   ├── review-schema.sql
 │   └── connection.js
 ├── middleware/           # Custom middleware
 │   └── authMiddleware.js
 ├── models/               # Database queries
 │   ├── account-model.js
+│   ├── review-model.js
 │   └── vehicle-model.js
 ├── public/               # Static files
 │   └── images/
@@ -168,10 +187,16 @@ cse340-2/
 ├── utilities/            # Helper functions & validation
 │   ├── index.js
 │   ├── account-validation.js
+│   ├── review-validation.js
 │   └── inventory-validation.js
 ├── views/                # EJS templates
 │   ├── account/
+│   │   ├── account.ejs
+│   │   ├── edit-review.ejs
+│   │   └── ...
 │   ├── inventory/
+│   │   ├── detail.ejs (with reviews)
+│   │   └── ...
 │   ├── partials/
 │   └── errors/
 ├── server.js             # Main entry point
@@ -193,6 +218,28 @@ cse340-2/
 | Client-side validation | ✅ |
 | Server-side validation | ✅ |
 | Role-based access control | ✅ |
+
+---
+
+## 📝 Final Project - Inventory Review System
+
+### Features Implemented
+1. **Database:** Review table with foreign keys, indexes, and triggers
+2. **Model:** 8 functions for CRUD operations on reviews
+3. **Controller:** 7 functions handling review logic with authentication/authorization
+4. **Views:** 3 views (detail.ejs with reviews, account.ejs with "My Reviews", edit-review.ejs)
+5. **Validation:** Client-side (HTML5 + JS) and server-side (express-validator)
+6. **Security:** 
+   - Only review authors can edit their own reviews
+   - Admins can delete (but not edit) inappropriate reviews
+   - Screen names use "Initial + Last Name" format (privacy)
+
+### Test Accounts
+```
+Client:   basic@340.edu    / I@mABas1cCl!3nt
+Employee: happy@340.edu    / I@mAnEmpl0y33
+Admin:    manager@340.edu  / I@mAnAdm!n1strat0r
+```
 
 ---
 
