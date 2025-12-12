@@ -96,6 +96,17 @@ RUBRIC COMPLIANCE
 Total Score: 100/100
 
 ================================================================================
+DOCUMENTATION
+================================================================================
+
+README.md              - Project overview, installation, features
+ZIP_README.txt         - This file (ZIP package information)
+WEEK5_COMPLIANCE.md    - Detailed Week 5 rubric compliance analysis
+
+For detailed evidence of Week 5 compliance (Account Management), see:
+WEEK5_COMPLIANCE.md
+
+================================================================================
 CONTACT
 ================================================================================
 
